@@ -1,0 +1,34 @@
+
+{
+  "name": "wlooker",
+  "version": "0.3.0",
+  "description": "Collection of light-weight routines to traverse complex data structure. The module takes care of cycles in a data structure( recursions ) and can be used for comparison or operation on several similar data structures. Please see wComparator which based on the module for comparison.",
+  "author": "Kostiantyn Wandalen <wanalen@willbe.so>",
+  "license": "MIT",
+  "main": "proto/dwtools/abase/l3/Looker.s",
+  "files": [
+    "proto/dwtools/amid",
+    "production"
+  ],
+  "scripts": {
+    "test": "wtest proto",
+    "docgen": "wdocgen proto"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Wandalen/wLooker.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Wandalen/wLooker/issues"
+  },
+  "dependencies": {
+    "wTools": ""
+  },
+  "devDependencies": {
+    "wTesting": "",
+    "wlooker": "."
+  },
+  "keywords": [
+    "wTools"
+  ]
+}
