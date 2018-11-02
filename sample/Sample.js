@@ -1,5 +1,5 @@
 
-let _ = require( 'wLooker' )
+let _ = require( 'wlooker' )
 
 /**/
 

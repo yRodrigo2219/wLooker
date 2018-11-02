@@ -6,7 +6,7 @@
   "license": "MIT",
   "main": "proto/dwtools/abase/l3/Looker.s",
   "files": [
-    "proto/dwtools/amid",
+    "proto/dwtools/abase/l3",
     "production"
   ],
   "scripts": {
