@@ -1,6 +1,6 @@
 {
   "name": "wlooker",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "description": "Collection of light-weight routines to traverse complex data structure. The module takes care of cycles in a data structure( recursions ) and can be used for comparison or operation on several similar data structures. Please see wComparator which based on the module for comparison.",
   "author": "Kostiantyn Wandalen <wanalen@willbe.so>",
   "license": "MIT",
