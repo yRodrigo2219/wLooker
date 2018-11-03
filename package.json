@@ -25,6 +25,7 @@
   },
   "devDependencies": {
     "wTesting": "",
+    "wstringer": "",
     "wlooker": "."
   },
   "keywords": [

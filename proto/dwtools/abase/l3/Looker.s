@@ -561,6 +561,11 @@ _.mapSupplement( Self, Supplement );
 // export
 // --
 
+// debugger;
+// console.log( Module );
+// console.log( module );
+// debugger;
+
 if( typeof module !== 'undefined' )
 if( _global_.WTOOLS_PRIVATE )
 delete require.cache[ module.id ];
