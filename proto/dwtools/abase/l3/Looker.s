@@ -47,7 +47,7 @@ _.assert( !!_realGlobal_ );
 // look
 // --
 
-function _lookIterator( o )
+function lookerIterator( o )
 {
 
   _.assert( arguments.length === 1 );
@@ -93,7 +93,7 @@ function _lookIterator( o )
 
 //
 
-function _iteratorIteration()
+function iteratorIteration()
 {
   let it = this;
 
@@ -111,46 +111,27 @@ function _iteratorIteration()
   newIt.src = it.src;
   newIt.src2 = it.src2;
 
-  // newIt.down = it;
-
   return newIt;
 }
 
 //
 
-function _iterationIteration()
+function iterationIteration()
 {
   let it = this;
 
   _.assert( arguments.length === 0 );
-  // _.assert( it.level >= 0 );
-  // _.assert( _.objectIs( it.iterator ) );
-  // _.assert( _.objectIs( it.looker ) );
-
-  // debugger;
-  //
-  // let newIt = Object.create( it.iterator );
-  // Object.assign( newIt, it.looker.Iteration );
-  // Object.preventExtensions( newIt );
-  //
-  // Object.assign( newIt, _.mapOnly( it, it.looker.IterationPreserve ) );
 
   let newIt = it.iterator.iteration.call( it )
 
   newIt.down = it;
 
-  // newIt.level = it.level;
-  // newIt.path = it.path;
-  // newIt.down = it;
-  // newIt.src = it.src;
-  // newIt.src2 = it.src2;
-
   return newIt;
 }
 
 //
 
-function _lookSelect( k )
+function iteratorSelect( k )
 {
   let it = this;
 
@@ -175,38 +156,7 @@ function _lookSelect( k )
 
 //
 
-// function _lookBegin( routine, args )
-// {
-//   let o = args[ 0 ];
-//
-//   _.assert( args.length === 1 );
-//   _.assert( arguments.length === 2, 'Expects exactly two arguments' );
-//   _.assertRoutineOptionsPreservingUndefines( routine, o );
-//   _.assert( routine.lookBegin === _lookBegin );
-//
-//   /* */
-//
-//   let iterator = this.iterator( o );
-//
-//   // _.assert( iterator.level !== undefined );
-//   // _.assert( iterator.path !== undefined );
-//   // _.assert( _.strIs( iterator.lastPath ) );
-//
-//   let iteration = iterator.iteration();
-//
-//   // let it = Object.create( iterator );
-//   // Object.assign( it, Iteration );
-//   // Object.preventExtensions( it );
-//   //
-//   // it.src = iterator.src;
-//   // it.src2 = iterator.src2;
-//
-//   return it;
-// }
-
-//
-
-function _lookIt( it )
+function iteratorLook( it )
 {
 
   _.assert( it.level >= 0 );
@@ -303,7 +253,7 @@ function _lookIt( it )
     it.ascending = true;
     if( it.down )
     {
-      debugger;
+      // debugger;
       it.down.hasChildren += 1;
     }
 
@@ -345,24 +295,6 @@ function _lookIt( it )
 
 }
 
-//
-//
-// function _lookContinue( routine, args )
-// {
-//   let it = args[ args.length - 1 ];
-//
-//   xxx
-//
-//   _.assert( arguments.length === 2, 'Expects exactly two arguments' );
-//
-//   if( !Object.isPrototypeOf.call( Iterator, it ) )
-//   {
-//     it = routine.pre( routine, args );
-//   }
-//
-//   return it;
-// }
-
 // --
 // relations
 // --
@@ -401,7 +333,7 @@ Defaults.looker = null;
 
 let Iteration = Object.create( null );
 
-Iteration.iteration = _iterationIteration;
+Iteration.iteration = iterationIteration;
 Iteration.hasChildren = 0;
 Iteration.level = 0,
 Iteration.path = '/';
@@ -423,9 +355,9 @@ Object.freeze( Iteration );
 let Iterator = _realGlobal_.wTools.Iterator = _realGlobal_.wTools.Iterator || Object.create( null );
 
 Iterator.iterator = null;
-Iterator.iteration = _iteratorIteration;
-Iterator.select = _lookSelect;
-Iterator.look = _lookIt;
+Iterator.iteration = iteratorIteration;
+Iterator.select = iteratorSelect;
+Iterator.look = iteratorLook;
 
 Iterator.path = null;
 Iterator.lastPath = null;
@@ -443,7 +375,7 @@ Iterator.visited2 = null;
 
 let Looker = Object.create( null );
 Looker.looker = Looker;
-Looker.iterator = _lookIterator;
+Looker.iterator = lookerIterator;
 Looker.Iterator = Iterator;
 Looker.Iteration = Iteration;
 Looker.Defaults = Defaults;
@@ -477,31 +409,33 @@ function _look_pre( routine, args )
   }
   else _.assert( 0,'look expects single options map, 2 or 3 arguments' );
 
+  if( o.looker && _.prototypeOf( o.looker, o ) )
+  {
+    return o;
+  }
+
   _.routineOptionsPreservingUndefines( routine, o );
   _.assert( args.length === 1 || args.length === 2 || args.length === 3 );
   _.assert( arguments.length === 2, 'Expects exactly two arguments' );
   _.assert( o.onUp === null || o.onUp.length === 0 || o.onUp.length === 3, 'onUp should Expects exactly three arguments' );
   _.assert( o.onDown === null || o.onDown.length === 0 || o.onDown.length === 3, 'onUp should Expects exactly three arguments' );
 
-  // let it = look.lookBegin( routine, [ o ] );
+  let iterator = o.looker.iterator( o );
+  let iteration = iterator.iteration();
 
-  return o;
+  return iteration;
 }
 
 //
 
-function _look_body( o )
+function _look_body( it )
 {
 
   _.assert( arguments.length === 1, 'Expects single argument' );
-  _.assert( _.objectIs( o.looker ) );
+  _.assert( _.objectIs( it.looker ) );
+  _.assert( _.prototypeOf( it.looker, it ) );
 
-  let iterator = o.looker.iterator( o );
-  let iteration = iterator.iteration();
-
-  return iteration.look( iteration );
-
-  // return look.lookIt( it );
+  return it.look( it );
 }
 
 _look_body.defaults = Object.create( Defaults );
@@ -513,10 +447,6 @@ function look( o )
   o = look.pre.call( _, look, arguments );
   return look.body.call( _, o );
 }
-
-// look.lookBegin = _lookBegin;
-// look.lookIt = _lookIt;
-// look.lookContinue = _lookContinue;
 
 look.pre = _look_pre;
 look.body = _look_body;
@@ -560,11 +490,6 @@ _.mapSupplement( Self, Supplement );
 // --
 // export
 // --
-
-// debugger;
-// console.log( Module );
-// console.log( module );
-// debugger;
 
 if( typeof module !== 'undefined' )
 if( _global_.WTOOLS_PRIVATE )
