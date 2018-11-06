@@ -47,11 +47,11 @@ function lookerIterator( o )
 
   iterator.iterator = iterator;
 
-  if( iterator.root === null )
-  iterator.root = iterator.src;
-
-  if( iterator.root2 === null )
-  iterator.root2 = iterator.src2;
+  // if( iterator.root === null )
+  // iterator.root = iterator.src;
+  //
+  // if( iterator.root2 === null )
+  // iterator.root2 = iterator.src2;
 
   if( iterator.trackingVisits )
   {
@@ -120,9 +120,10 @@ function iteratorSelect( k )
 {
   let it = this;
 
-  _.assert( arguments.length === 1, 'Expects exactly two arguments' );
+  _.assert( arguments.length === 1, 'Expects single argument' );
   _.assert( it.level >= 0 );
   _.assert( _.objectIs( it.down ) );
+  _.assert( !!it.src );
 
   it.level = it.level+1;
   it.path = it.path !== it.delimteter ? it.path + it.delimteter + k : it.path + k;
@@ -131,8 +132,39 @@ function iteratorSelect( k )
   it.index = it.down.hasChildren;
   it.src = it.src[ k ];
 
+  it.select2( k );
+
+  return it;
+}
+
+//
+
+function iteratorSelect2( k )
+{
+  let it = this;
+
+  _.assert( arguments.length === 1, 'Expects single argument' );
+  _.assert( it.level >= 0 );
+  _.assert( _.objectIs( it.down ) );
+
+  return it.onSelect2( it );
+
+  // if( it.src2 )
+  // it.src2 = it.src2[ k ];
+  // else
+  // it.src2 = undefined;
+  //
+  // return it;
+}
+
+//
+
+function onSelect2()
+{
+  let it = this;
+
   if( it.src2 )
-  it.src2 = it.src2[ k ];
+  it.src2 = it.src2[ it.key ];
   else
   it.src2 = undefined;
 
@@ -141,11 +173,19 @@ function iteratorSelect( k )
 
 //
 
-function iteratorLook( it )
+function iteratorLook()
 {
+  let it = this;
 
   _.assert( it.level >= 0 );
-  _.assert( arguments.length === 1, 'Expects single argument' );
+  _.assert( arguments.length === 0 );
+
+  let keepLooking = true;
+  if( !it.recursive && it.down )
+  keepLooking = false;
+
+  if( !keepLooking )
+  return it;
 
   /* up */
 
@@ -153,16 +193,25 @@ function iteratorLook( it )
 
   /* level */
 
-  let keepLooking = true;
   if( it.levelLimit !== 0 )
   if( !( it.level < it.levelLimit ) )
-  {
-    keepLooking = false;
-  }
+  keepLooking = false;
 
   _.assert( _.boolIs( it.looking ) );
   _.assert( _.boolIs( it.iterator.looking ) );
-  if( keepLooking === false || it.looking === false || it.looking === _.dont || it.iterator.looking === false ||  it.iterator.looking === _.dont || it.visitedManyTimes )
+
+  if( keepLooking === false )
+  {}
+  else if( it.looking === false )
+  keepLooking = false;
+  else if( it.iterator.looking === false )
+  keepLooking = false;
+  else if( it.visitedManyTimes )
+  keepLooking = false;
+  else if( it.ascending === false )
+  keepLooking = false;
+
+  if( keepLooking === false )
   return down();
 
   /* iterate */
@@ -214,10 +263,10 @@ function iteratorLook( it )
   function handleElement( k )
   {
 
-    if( it.recursive || it.root === it.src )
+    // if( it.recursive || it.root === it.src )
     {
       let itNew = it.iteration().select( k );
-      itNew.look( itNew );
+      itNew.look();
     }
 
   }
@@ -238,16 +287,15 @@ function iteratorLook( it )
     it.ascending = true;
     if( it.down )
     {
-      // debugger;
       it.down.hasChildren += 1;
     }
 
     if( it.visitingRoot || it.root !== it.src )
     {
       _.assert( _.routineIs( it.onUp ) );
-      it.looking = it.onUp.call( it, it.src, it.key, it );
-      if( it.looking === undefined )
-      it.looking = true;
+      let r = it.onUp.call( it, it.src, it.key, it );
+      if( it.looking === true && r !== undefined )
+      it.looking = r;
       if( it.looking === _.dont )
       it.looking = false;
       _.assert( _.boolIs( it.looking ), () => 'Expects it.onUp returns boolean, but got ' + _.strTypeOf( it.looking ) );
@@ -289,6 +337,7 @@ let Defaults = Object.create( null );
 Defaults.onUp = function( e,k,it ){ return it.looking };
 Defaults.onTerminal = function( e,k,it ){ return it.result };
 Defaults.onDown = function( e,k,it ){ return it.result };
+Defaults.onSelect2 = onSelect2;
 
 Defaults.own = 0;
 Defaults.recursive = 1;
@@ -342,6 +391,7 @@ let Iterator = _global.wTools.Iterator = _global.wTools.Iterator || Object.creat
 Iterator.iterator = null;
 Iterator.iteration = iteratorIteration;
 Iterator.select = iteratorSelect;
+Iterator.select2 = iteratorSelect2;
 Iterator.look = iteratorLook;
 
 Iterator.path = null;
@@ -354,7 +404,7 @@ Iterator.root2 = null;
 Iterator.visited = null;
 Iterator.visited2 = null;
 
-// Object.freeze( Iterator );
+Object.freeze( Iterator );
 
 //
 
@@ -365,7 +415,7 @@ Looker.Iterator = Iterator;
 Looker.Iteration = Iteration;
 Looker.Defaults = Defaults;
 
-Object.freeze( Looker );
+// Object.freeze( Looker );
 
 Defaults.looker = Looker;
 
@@ -399,7 +449,10 @@ function _look_pre( routine, args )
     return o;
   }
 
-  _.routineOptionsPreservingUndefines( routine, o );
+  o.looker = o.looker || routine.defaults.looker;
+
+  _.mapComplementPreservingUndefines( o, routine.defaults );
+  _.routineOptionsPreservingUndefines( routine, o, o.looker.Defaults );
   _.assert( args.length === 1 || args.length === 2 || args.length === 3 );
   _.assert( arguments.length === 2, 'Expects exactly two arguments' );
   _.assert( o.onUp === null || o.onUp.length === 0 || o.onUp.length === 3, 'onUp should Expects exactly three arguments' );
@@ -420,39 +473,25 @@ function _look_body( it )
   _.assert( _.objectIs( it.looker ) );
   _.assert( _.prototypeOf( it.looker, it ) );
 
-  return it.look( it );
+  return it.look();
 }
 
 _look_body.defaults = Object.create( Defaults );
 
 //
 
-function look( o )
-{
-  o = look.pre.call( _, look, arguments );
-  return look.body.call( _, o );
-}
+let look = _.routineFromPreAndBody( _look_pre, _look_body );
 
-look.pre = _look_pre;
-look.body = _look_body;
-
-var defaults = look.defaults = Object.create( _look_body.defaults );
+var defaults = look.defaults;
 
 defaults.own = 0;
+defaults.recursive = 1;
 
 //
 
-function lookOwn( o )
-{
-  o = lookOwn.pre.call( _, look, arguments );
-  _.assert( o.own );
-  return lookOwn.body.call( _, o );
-}
+let lookOwn = _.routineFromPreAndBody( _look_pre, _look_body );
 
-look.pre = _look_pre;
-look.body = _look_body;
-
-var defaults = lookOwn.defaults = Object.create( _look_body.defaults );
+var defaults = lookOwn.defaults;
 
 defaults.own = 1;
 defaults.recursive = 1;
