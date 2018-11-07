@@ -29,7 +29,7 @@ let _ObjectHasOwnProperty = Object.hasOwnProperty;
 _.assert( !!_realGlobal_ );
 
 // --
-// look
+// looker
 // --
 
 function lookerIterator( o )
@@ -45,13 +45,11 @@ function lookerIterator( o )
   Object.assign( iterator, this.Iterator );
   Object.assign( iterator, o );
 
-  iterator.iterator = iterator;
+  delete iterator.it;
 
-  // if( iterator.root === null )
-  // iterator.root = iterator.src;
-  //
-  // if( iterator.root2 === null )
-  // iterator.root2 = iterator.src2;
+  _.assert( iterator.it === undefined );
+
+  iterator.iterator = iterator;
 
   if( iterator.trackingVisits )
   {
@@ -60,12 +58,9 @@ function lookerIterator( o )
   }
 
   if( iterator.path === null )
-  iterator.path = iterator.delimteter;
+  iterator.path = iterator.upToken;
 
   iterator.lastPath = iterator.path;
-
-  // iterator.key = null;
-  // iterator.looking = true;
 
   Object.preventExtensions( iterator );
 
@@ -76,7 +71,9 @@ function lookerIterator( o )
   return iterator;
 }
 
-//
+// --
+// iterator
+// --
 
 function iteratorIteration()
 {
@@ -95,21 +92,6 @@ function iteratorIteration()
   newIt.path = it.path;
   newIt.src = it.src;
   newIt.src2 = it.src2;
-
-  return newIt;
-}
-
-//
-
-function iterationIteration()
-{
-  let it = this;
-
-  _.assert( arguments.length === 0 );
-
-  let newIt = it.iterator.iteration.call( it )
-
-  newIt.down = it;
 
   return newIt;
 }
@@ -231,13 +213,7 @@ function iteratorLook()
       _.assert( _.boolIs( it.looking ), () => 'Expects it.onUp returns boolean, but got ' + _.strTypeOf( it.looking ) );
     }
 
-    if( it.iterator.trackingVisits && it.trackingVisits )
-    {
-      if( it.visited.indexOf( it.src ) !== -1 )
-      it.visitedManyTimes = true;
-      it.visited.push( it.src );
-      it.visited2.push( it.src2 );
-    }
+    it.visitBegin()
 
   }
 
@@ -253,13 +229,7 @@ function iteratorLook()
       it.result = it.onDown.call( it, it.src, it.key, it );
     }
 
-    if( it.iterator.trackingVisits && it.trackingVisits )
-    {
-      _.assert( Object.is( it.visited[ it.visited.length-1 ], it.src ) );
-      it.visited.pop();
-      _.assert( Object.is( it.visited2[ it.visited2.length-1 ], it.src2 ) );
-      it.visited2.pop();
-    }
+    it.visitEnd();
 
     return it;
   }
@@ -267,6 +237,57 @@ function iteratorLook()
 }
 
 //
+
+function iteratorVisitBegin()
+{
+  let it = this;
+
+  if( it.iterator.trackingVisits && it.trackingVisits )
+  {
+    if( it.visited.indexOf( it.src ) !== -1 )
+    it.visitedManyTimes = true;
+    it.visited.push( it.src );
+    it.visited2.push( it.src2 );
+  }
+
+}
+
+//
+
+function iteratorVisitEnd()
+{
+  let it = this;
+
+  if( it.iterator.trackingVisits && it.trackingVisits )
+  {
+    _.assert( Object.is( it.visited[ it.visited.length-1 ], it.src ) );
+    it.visited.pop();
+    _.assert( Object.is( it.visited2[ it.visited2.length-1 ], it.src2 ) );
+    it.visited2.pop();
+  }
+
+}
+
+// --
+// iteration
+// --
+
+function iterationIteration()
+{
+  let it = this;
+
+  _.assert( arguments.length === 0 );
+
+  let newIt = it.iterator.iteration.call( it )
+
+  newIt.down = it;
+
+  return newIt;
+}
+
+// --
+// handler
+// --
 
 function onUp( e,k,it )
 {
@@ -365,8 +386,9 @@ function onSelect( k )
   _.assert( arguments.length === 1, 'Expects single argument' );
 
   it.level = it.level+1;
-  it.path = it.path !== it.delimteter ? it.path + it.delimteter + k : it.path + k;
+  it.path = it.path !== it.upToken ? it.path + it.upToken + k : it.path + k;
   it.iterator.lastPath = it.path;
+  it.iterator.lastSelect = it;
   it.key = k;
   it.index = it.down.hasChildren;
   it.src = it.src[ k ];
@@ -409,7 +431,7 @@ Defaults.visitingRoot = 1;
 Defaults.trackingVisits = 1;
 Defaults.levelLimit = 0;
 
-Defaults.delimteter = '/';
+Defaults.upToken = '/';
 Defaults.path = null;
 
 Defaults.counter = 0;
@@ -423,12 +445,44 @@ Defaults.root2 = null;
 
 Defaults.context = null;
 Defaults.looker = null;
-
-// Object.freeze( Defaults );
+Defaults.it = null;
 
 //
 
-let Iteration = Object.create( null );
+let Looker = Defaults.looker = Object.create( null );
+Looker.looker = Looker;
+Looker.iterator = lookerIterator;
+// Looker.Iterator = Iterator;
+// Looker.Iteration = Iteration;
+Looker.Defaults = Defaults;
+
+//
+
+// let Iterator = _global.wTools.Iterator = _global.wTools.Iterator || Object.create( null );
+let Iterator = Looker.Iterator = Object.create( null );
+
+Iterator.iterator = null;
+Iterator.iteration = iteratorIteration;
+Iterator.select = iteratorSelect;
+Iterator.select2 = iteratorSelect2;
+Iterator.look = iteratorLook;
+Iterator.visitBegin = iteratorVisitBegin;
+Iterator.visitEnd = iteratorVisitEnd;
+
+Iterator.path = null;
+Iterator.lastPath = null;
+Iterator.lastSelect = null;
+Iterator.looking = true;
+Iterator.key = null;
+
+Iterator.visited = null;
+Iterator.visited2 = null;
+
+Object.freeze( Iterator );
+
+//
+
+let Iteration = Looker.Iteration = Object.create( null );
 
 Iteration.iteration = iterationIteration;
 Iteration.hasChildren = 0;
@@ -449,41 +503,6 @@ Iteration.iterable = null;
 Iteration.trackingVisits = 1;
 
 Object.freeze( Iteration );
-
-//
-
-let Iterator = _global.wTools.Iterator = _global.wTools.Iterator || Object.create( null );
-
-Iterator.iterator = null;
-Iterator.iteration = iteratorIteration;
-Iterator.select = iteratorSelect;
-Iterator.select2 = iteratorSelect2;
-Iterator.look = iteratorLook;
-
-Iterator.path = null;
-Iterator.lastPath = null;
-Iterator.looking = true;
-Iterator.key = null;
-
-// Iterator.root = null;
-// Iterator.root2 = null;
-Iterator.visited = null;
-Iterator.visited2 = null;
-
-Object.freeze( Iterator );
-
-//
-
-let Looker = Object.create( null );
-Looker.looker = Looker;
-Looker.iterator = lookerIterator;
-Looker.Iterator = Iterator;
-Looker.Iteration = Iteration;
-Looker.Defaults = Defaults;
-
-// Object.freeze( Looker );
-
-Defaults.looker = Looker;
 
 // --
 // expose
@@ -524,10 +543,17 @@ function _look_pre( routine, args )
   _.assert( o.onUp === null || o.onUp.length === 0 || o.onUp.length === 3, 'onUp should Expects exactly three arguments' );
   _.assert( o.onDown === null || o.onDown.length === 0 || o.onDown.length === 3, 'onUp should Expects exactly three arguments' );
 
-  let iterator = o.looker.iterator( o );
-  let iteration = iterator.iteration();
+  if( o.it === null || o.it === undefined )
+  {
+    let iterator = o.looker.iterator( o );
+    let iteration = iterator.iteration();
+    return iteration;
+  }
+  else
+  {
+    return o.it;
+  }
 
-  return iteration;
 }
 
 //
@@ -562,6 +588,34 @@ var defaults = lookOwn.defaults;
 defaults.own = 1;
 defaults.recursive = 1;
 
+//
+
+function iteratorIs( it )
+{
+  if( !it )
+  return false;
+  if( !it.looker )
+  return false;
+  if( it.iterator !== it )
+  return false;
+  return true;
+}
+
+//
+
+function iterationIs( it )
+{
+  if( !it )
+  return false;
+  if( !it.looker )
+  return false;
+  if( !it.iterator )
+  return false;
+  if( it.iterator === it )
+  return false;
+  return true;
+}
+
 // --
 // declare
 // --
@@ -573,6 +627,9 @@ let Supplement =
   look : look,
   lookOwn : lookOwn,
 
+  iteratorIs : iteratorIs,
+  iterationIs : iterationIs,
+
 }
 
 _.mapSupplement( Self, Supplement );
@@ -581,9 +638,9 @@ _.mapSupplement( Self, Supplement );
 // export
 // --
 
-if( typeof module !== 'undefined' )
-if( _global_.WTOOLS_PRIVATE )
-{ /* delete require.cache[ module.id ]; */ }
+// if( typeof module !== 'undefined' )
+// if( _global_.WTOOLS_PRIVATE )
+// { /* delete require.cache[ module.id ]; */ }
 
 if( typeof module !== 'undefined' && module !== null )
 module[ 'exports' ] = Self;
