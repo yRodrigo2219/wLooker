@@ -105,7 +105,6 @@ function iteratorSelect( k )
   _.assert( arguments.length === 1, 'Expects single argument' );
   _.assert( it.level >= 0 );
   _.assert( _.objectIs( it.down ) );
-  _.assert( !!it.src );
 
   it.onSelect( k );
   it.select2( k );
@@ -213,7 +212,7 @@ function iteratorLook()
       _.assert( _.boolIs( it.looking ), () => 'Expects it.onUp returns boolean, but got ' + _.strTypeOf( it.looking ) );
     }
 
-    it.visitBegin()
+    it.visitBeginMaybe()
 
   }
 
@@ -229,7 +228,7 @@ function iteratorLook()
       it.result = it.onDown.call( it, it.src, it.key, it );
     }
 
-    it.visitEnd();
+    it.visitEndMaybe();
 
     return it;
   }
@@ -242,7 +241,7 @@ function iteratorVisitBegin()
 {
   let it = this;
 
-  if( it.iterator.trackingVisits && it.trackingVisits )
+  if( it.iterator.trackingVisits )
   {
     if( it.visited.indexOf( it.src ) !== -1 )
     it.visitedManyTimes = true;
@@ -254,17 +253,41 @@ function iteratorVisitBegin()
 
 //
 
-function iteratorVisitEnd()
+function iteratorVisitBeginMaybe()
 {
   let it = this;
 
   if( it.iterator.trackingVisits && it.trackingVisits )
+  it.visitBegin();
+
+}
+
+//
+
+function iteratorVisitEnd()
+{
+  let it = this;
+
+  if( it.iterator.trackingVisits )
   {
-    _.assert( Object.is( it.visited[ it.visited.length-1 ], it.src ) );
+    _.assert( Object.is( it.visited[ it.visited.length-1 ], it.src ), () => 'Top-most visit does not match ' + it.path );
     it.visited.pop();
-    _.assert( Object.is( it.visited2[ it.visited2.length-1 ], it.src2 ) );
+    _.assert( Object.is( it.visited2[ it.visited2.length-1 ], it.src2 ), 'Top-most visit does not match ' + it.path );
     it.visited2.pop();
   }
+
+}
+
+//
+
+function iteratorVisitEndMaybe()
+{
+  let it = this;
+
+  if( it.iterator.trackingVisits && it.trackingVisits )
+  it.visitEnd();
+
+  it.trackingVisits = 0;
 
 }
 
@@ -391,7 +414,11 @@ function onSelect( k )
   it.iterator.lastSelect = it;
   it.key = k;
   it.index = it.down.hasChildren;
+
+  if( it.src )
   it.src = it.src[ k ];
+  else
+  it.src = undefined;
 
 }
 
@@ -467,13 +494,16 @@ Iterator.select = iteratorSelect;
 Iterator.select2 = iteratorSelect2;
 Iterator.look = iteratorLook;
 Iterator.visitBegin = iteratorVisitBegin;
+Iterator.visitBeginMaybe = iteratorVisitBeginMaybe;
 Iterator.visitEnd = iteratorVisitEnd;
+Iterator.visitEndMaybe = iteratorVisitEndMaybe;
 
 Iterator.path = null;
 Iterator.lastPath = null;
 Iterator.lastSelect = null;
 Iterator.looking = true;
 Iterator.key = null;
+Iterator.error = null;
 
 Iterator.visited = null;
 Iterator.visited2 = null;
@@ -503,6 +533,40 @@ Iteration.iterable = null;
 Iteration.trackingVisits = 1;
 
 Object.freeze( Iteration );
+
+//
+
+function ErrorLooking()
+{
+
+  if( !( this instanceof ErrorLooking ) )
+  {
+    let err1 = new ErrorLooking();
+    let err2 = _.err.apply( _, _.arrayAppendArray( [ err1, '\n' ], arguments ) );
+
+    _.assert( err2 instanceof Error );
+    _.assert( err2 instanceof ErrorLooking );
+    _.assert( !!err2.stack );
+
+    return err2;
+  }
+
+  _.assert( arguments.length === 0 );
+  return this;
+}
+
+ErrorLooking.prototype = Object.create( Error.prototype );
+ErrorLooking.prototype.constructor = ErrorLooking;
+
+// ErrorLooking.make = function ErrorSelectingMake()
+// {
+//   let err = new ErrorLooking();
+//   err = _.err.apply( _, _.arrayAppendArray( [ err ], arguments ) );
+//   _.assert( err instanceof Error );
+//   _.assert( err instanceof ErrorLooking );
+//   _.assert( !!err.stack );
+//   return err;
+// }
 
 // --
 // expose
@@ -624,6 +688,8 @@ let Supplement =
 {
 
   Looker : Looker,
+  ErrorLooking : ErrorLooking,
+
   look : look,
   lookOwn : lookOwn,
 
