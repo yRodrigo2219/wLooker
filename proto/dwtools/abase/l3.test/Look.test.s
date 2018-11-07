@@ -47,6 +47,7 @@ function look( test )
 
   function handleUp1( e, k, it )
   {
+    debugger;
     gotUpPaths.push( it.path );
     gotUpIndinces.push( it.index );
   }

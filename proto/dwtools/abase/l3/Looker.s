@@ -125,13 +125,7 @@ function iteratorSelect( k )
   _.assert( _.objectIs( it.down ) );
   _.assert( !!it.src );
 
-  it.level = it.level+1;
-  it.path = it.path !== it.delimteter ? it.path + it.delimteter + k : it.path + k;
-  it.iterator.lastPath = it.path;
-  it.key = k;
-  it.index = it.down.hasChildren;
-  it.src = it.src[ k ];
-
+  it.onSelect( k );
   it.select2( k );
 
   return it;
@@ -147,28 +141,7 @@ function iteratorSelect2( k )
   _.assert( it.level >= 0 );
   _.assert( _.objectIs( it.down ) );
 
-  return it.onSelect2( it );
-
-  // if( it.src2 )
-  // it.src2 = it.src2[ k ];
-  // else
-  // it.src2 = undefined;
-  //
-  // return it;
-}
-
-//
-
-function onSelect2()
-{
-  let it = this;
-
-  if( it.src2 )
-  it.src2 = it.src2[ it.key ];
-  else
-  it.src2 = undefined;
-
-  return it;
+  return it.onSelect2( k );
 }
 
 //
@@ -186,6 +159,13 @@ function iteratorLook()
 
   if( !keepLooking )
   return it;
+
+  if( it.down )
+  {
+    it.down.hasChildren += 1;
+  }
+
+  it.visiting = it.visitingRoot || it.root !== it.src;
 
   /* up */
 
@@ -216,81 +196,31 @@ function iteratorLook()
 
   /* iterate */
 
-  if( _.arrayIs( it.src ) || _.argumentsArrayIs( it.src ) )
+  it.onIterate( function( eit, it )
   {
 
-    for( let k = 0 ; k < it.src.length ; k++ )
-    {
+    eit.look();
 
-      handleElement( k );
+    // let itNew = it.iteration().select( k );
+    // itNew.look();
 
-      if( !it.iterator.looking || it.iterator.looking === _.dont )
-      break;
+  });
 
-    }
-
-  }
-  else if( _.objectLike( it.src ) )
-  {
-
-    for( let k in it.src )
-    {
-
-      if( it.own )
-      if( !_ObjectHasOwnProperty.call( it.src,k ) )
-      continue;
-
-      handleElement( k );
-
-      if( !it.iterator.looking || it.iterator.looking === _.dont )
-      break;
-
-    }
-
-  }
-  else
-  {
-    if( it.onTerminal )
-    it.onTerminal.call( it, it.src, it.key, it );
-  }
+  if( !it.iterable )
+  it.onTerminal( it );
 
   /* end */
 
   return down();
-
-  /* element */
-
-  function handleElement( k )
-  {
-
-    // if( it.recursive || it.root === it.src )
-    {
-      let itNew = it.iteration().select( k );
-      itNew.look();
-    }
-
-  }
 
   /* up */
 
   function up()
   {
 
-    if( it.trackingVisits )
-    {
-      if( it.visited.indexOf( it.src ) !== -1 )
-      it.visitedManyTimes = true;
-      it.visited.push( it.src );
-      it.visited2.push( it.src2 );
-    }
-
     it.ascending = true;
-    if( it.down )
-    {
-      it.down.hasChildren += 1;
-    }
 
-    if( it.visitingRoot || it.root !== it.src )
+    if( it.visiting )
     {
       _.assert( _.routineIs( it.onUp ) );
       let r = it.onUp.call( it, it.src, it.key, it );
@@ -301,6 +231,14 @@ function iteratorLook()
       _.assert( _.boolIs( it.looking ), () => 'Expects it.onUp returns boolean, but got ' + _.strTypeOf( it.looking ) );
     }
 
+    if( it.iterator.trackingVisits && it.trackingVisits )
+    {
+      if( it.visited.indexOf( it.src ) !== -1 )
+      it.visitedManyTimes = true;
+      it.visited.push( it.src );
+      it.visited2.push( it.src2 );
+    }
+
   }
 
   /* down */
@@ -309,13 +247,13 @@ function iteratorLook()
   {
     it.ascending = false;
 
-    if( it.visitingRoot || it.root !== it.src )
+    if( it.visiting )
     {
       if( it.onDown )
       it.result = it.onDown.call( it, it.src, it.key, it );
     }
 
-    if( it.trackingVisits )
+    if( it.iterator.trackingVisits && it.trackingVisits )
     {
       _.assert( Object.is( it.visited[ it.visited.length-1 ], it.src ) );
       it.visited.pop();
@@ -328,15 +266,140 @@ function iteratorLook()
 
 }
 
+//
+
+function onUp( e,k,it )
+{
+  return it.looking;
+}
+
+//
+
+function onDown( e,k,it )
+{
+  return it.result;
+}
+
+//
+
+function onTerminal( it )
+{
+  return it;
+}
+
+//
+
+function onIterate( onElement )
+{
+  let it = this;
+
+  if( _.arrayIs( it.src ) || _.argumentsArrayIs( it.src ) )
+  {
+    it.iterable = 'array-like';
+  }
+  else if( _.objectLike( it.src ) )
+  {
+    it.iterable = 'object-like';
+  }
+  else
+  {
+    it.iterable = false;
+  }
+
+  _.assert( arguments.length === 1 );
+  _.assert( it.iterable !== null && it.iterable !== undefined );
+  _.assert( _.routineIs( onElement ) )
+
+  if( it.iterable === 'array-like' )
+  {
+
+    for( let k = 0 ; k < it.src.length ; k++ )
+    {
+
+      let itNew = it.iteration().select( k );
+      // itNew.look();
+      onElement( itNew, it );
+
+      // if( !it.iterator.looking || it.iterator.looking === _.dont )
+      // break;
+
+      if( !it.looking || it.looking === _.dont )
+      break;
+
+    }
+
+  }
+  else if( it.iterable === 'object-like' )
+  {
+
+    for( let k in it.src )
+    {
+
+      if( it.own )
+      if( !_ObjectHasOwnProperty.call( it.src,k ) )
+      continue;
+
+      let itNew = it.iteration().select( k );
+      // itNew.look();
+      onElement( itNew, it );
+
+      // onElement( k, it );
+
+      if( !it.looking || it.looking === _.dont )
+      break;
+
+      // if( !it.iterator.looking || it.iterator.looking === _.dont )
+      // break;
+
+    }
+
+  }
+
+}
+
+//
+
+function onSelect( k )
+{
+  let it = this;
+  _.assert( arguments.length === 1, 'Expects single argument' );
+
+  it.level = it.level+1;
+  it.path = it.path !== it.delimteter ? it.path + it.delimteter + k : it.path + k;
+  it.iterator.lastPath = it.path;
+  it.key = k;
+  it.index = it.down.hasChildren;
+  it.src = it.src[ k ];
+
+}
+
+//
+
+function onSelect2( k )
+{
+  let it = this;
+
+  _.assert( arguments.length === 1, 'Expects single argument' );
+
+  if( it.src2 )
+  it.src2 = it.src2[ it.key ];
+  else
+  it.src2 = undefined;
+
+  return it;
+}
+
 // --
 // relations
 // --
 
 let Defaults = Object.create( null );
 
-Defaults.onUp = function( e,k,it ){ return it.looking };
-Defaults.onTerminal = function( e,k,it ){ return it.result };
-Defaults.onDown = function( e,k,it ){ return it.result };
+Defaults.onUp = onUp;
+Defaults.onDown = onDown;
+Defaults.onTerminal = onTerminal;
+Defaults.onIterate = onIterate;
+Defaults.onSelect = onSelect;
 Defaults.onSelect2 = onSelect2;
 
 Defaults.own = 0;
@@ -381,6 +444,9 @@ Iteration.ascending = true;
 Iteration.visitedManyTimes = false;
 Iteration._ = null;
 Iteration.down = null;
+Iteration.visiting = false;
+Iteration.iterable = null;
+Iteration.trackingVisits = 1;
 
 Object.freeze( Iteration );
 
@@ -399,8 +465,8 @@ Iterator.lastPath = null;
 Iterator.looking = true;
 Iterator.key = null;
 
-Iterator.root = null;
-Iterator.root2 = null;
+// Iterator.root = null;
+// Iterator.root2 = null;
 Iterator.visited = null;
 Iterator.visited2 = null;
 
