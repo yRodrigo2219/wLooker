@@ -106,8 +106,20 @@ function iteratorSelect( k )
   _.assert( it.level >= 0 );
   _.assert( _.objectIs( it.down ) );
 
-  it.onSelect( k );
-  it.select2( k );
+  it.level = it.level+1;
+  it.path = it.path !== it.upToken ? it.path + it.upToken + k : it.path + k;
+  it.iterator.lastPath = it.path;
+  it.iterator.lastSelect = it;
+  it.key = k;
+  it.index = it.down.hasChildren;
+
+  if( it.src )
+  it.src = it.src[ k ];
+  else
+  it.src = undefined;
+
+  // it.onSelect( k );
+  // it.select2( k );
 
   return it;
 }
@@ -122,7 +134,15 @@ function iteratorSelect2( k )
   _.assert( it.level >= 0 );
   _.assert( _.objectIs( it.down ) );
 
-  return it.onSelect2( k );
+  _.assert( arguments.length === 1, 'Expects single argument' );
+
+  if( it.src2 )
+  it.src2 = it.src2[ it.key ];
+  else
+  it.src2 = undefined;
+
+  return it;
+  // return it.onSelect2( k );
 }
 
 //
@@ -134,115 +154,83 @@ function iteratorLook()
   _.assert( it.level >= 0 );
   _.assert( arguments.length === 0 );
 
-  let keepLooking = true;
-  if( !it.recursive && it.down )
-  keepLooking = false;
-
-  if( !keepLooking )
+  let startLooking = it.canStartLooking();
+  if( !startLooking )
   return it;
 
   if( it.down )
-  {
-    it.down.hasChildren += 1;
-  }
+  it.down.hasChildren += 1;
 
   it.visiting = it.visitingRoot || it.root !== it.src;
 
-  up();
+  it.lookUp();
 
-  if( keepLooking )
-  keepLooking = doKeepLooking();
-
+  let keepLooking = it.canKeepLooking();
   if( keepLooking === false )
-  return down();
+  return it.lookDown();
 
-  it.onIterate( function( eit, it )
+  it.onIterate( function( eit )
   {
     eit.look();
   });
 
   if( !it.iterable )
-  it.onTerminal( it );
+  it.onTerminal();
 
-  return down();
+  return it.lookDown();
+}
 
-  /* - */
+//
 
-  function doKeepLooking()
+function iteratorLookUp()
+{
+  let it = this;
+
+  it.ascending = true;
+
+  if( it.iterator.trackingVisits )
   {
-    let keepLooking = true;
-
-    if( it.levelLimit !== 0 )
-    if( !( it.level < it.levelLimit ) )
-    keepLooking = false;
-
-    _.assert( _.boolIs( it.looking ) );
-    _.assert( _.boolIs( it.iterator.looking ) );
-
-    if( keepLooking === false )
-    {}
-    else if( it.looking === false )
-    keepLooking = false;
-    else if( it.iterator.looking === false )
-    keepLooking = false;
-    else if( it.visitedManyTimes )
-    keepLooking = false;
-    else if( it.ascending === false )
-    keepLooking = false;
-
-    return keepLooking;
+    if( it.visited.indexOf( it.src ) !== -1 )
+    it.visitedManyTimes = true;
   }
 
-  /* up */
-
-  function up()
+  if( it.visiting )
   {
-
-    it.ascending = true;
-
-    if( it.iterator.trackingVisits )
+    _.assert( _.routineIs( it.onUp ) );
+    let r = it.onUp.call( it, it.src, it.key, it );
+    if( r === _.dontUp )
     {
-      if( it.visited.indexOf( it.src ) !== -1 )
-      it.visitedManyTimes = true;
-    }
-
-    if( it.visiting )
-    {
-      _.assert( _.routineIs( it.onUp ) );
-      let r = it.onUp.call( it, it.src, it.key, it );
-      if( r === _.dontUp )
-      {
-        it.iterator.looking = false;
-        it.looking = false;
-      }
-      if( it.looking === true && r !== undefined )
-      it.looking = r;
-      if( it.looking === _.dont )
+      it.iterator.looking = false;
       it.looking = false;
-      _.assert( _.boolIs( it.looking ), () => 'Expects it.onUp returns boolean, but got ' + _.strTypeOf( it.looking ) );
     }
-
-    it.visitBeginMaybe()
-
+    if( it.looking === true && r !== undefined )
+    it.looking = r;
+    if( it.looking === _.dont )
+    it.looking = false;
+    _.assert( _.boolIs( it.looking ), () => 'Expects it.onUp returns boolean, but got ' + _.strTypeOf( it.looking ) );
   }
 
-  /* down */
+  it.visitBeginMaybe()
 
-  function down()
+}
+
+//
+
+function iteratorLookDown()
+{
+  let it = this;
+
+  it.ascending = false;
+
+  if( it.visiting )
   {
-    it.ascending = false;
-
-    if( it.visiting )
-    {
-      if( it.onDown )
-      it.result = it.onDown.call( it, it.src, it.key, it );
-    }
-
-    it.visitEndMaybe();
-
-    return it;
+    if( it.onDown )
+    it.result = it.onDown.call( it, it.src, it.key, it );
   }
 
+  it.visitEndMaybe();
+
+  return it;
 }
 
 //
@@ -299,6 +287,47 @@ function iteratorVisitEndMaybe()
 
 }
 
+//
+
+function iteratorCanStartLooking()
+{
+  let it = this;
+  let startLooking = true;
+
+  if( !it.recursive && it.down )
+  startLooking = false;
+
+  return startLooking;
+}
+
+//
+
+function iteratorCanKeepLooking()
+{
+  let it = this;
+  let keepLooking = true;
+
+  if( it.levelLimit !== 0 )
+  if( !( it.level < it.levelLimit ) )
+  keepLooking = false;
+
+  _.assert( _.boolIs( it.looking ) );
+  _.assert( _.boolIs( it.iterator.looking ) );
+
+  if( keepLooking === false )
+  {}
+  else if( it.looking === false )
+  keepLooking = false;
+  else if( it.iterator.looking === false )
+  keepLooking = false;
+  else if( it.visitedManyTimes )
+  keepLooking = false;
+  else if( it.ascending === false )
+  keepLooking = false;
+
+  return keepLooking;
+}
+
 // --
 // iteration
 // --
@@ -334,14 +363,15 @@ function onDown( e,k,it )
 
 //
 
-function onTerminal( it )
+function onTerminal()
 {
+  let it = this;
   return it;
 }
 
 //
 
-function onIterate( onElement )
+function onIterate( onIteration )
 {
   let it = this;
 
@@ -360,7 +390,8 @@ function onIterate( onElement )
 
   _.assert( arguments.length === 1 );
   _.assert( it.iterable !== null && it.iterable !== undefined );
-  _.assert( _.routineIs( onElement ) )
+  _.assert( _.routineIs( onIteration ) );
+  _.assert( onIteration.length === 0 || onIteration.length === 1 );
 
   if( it.iterable === 'array-like' )
   {
@@ -368,9 +399,9 @@ function onIterate( onElement )
     for( let k = 0 ; k < it.src.length ; k++ )
     {
 
-      let itNew = it.iteration().select( k );
+      let eit = it.iteration().select( k ).select2( k );
 
-      onElement( itNew, it );
+      onIteration.call( it, eit );
 
       if( !it.looking || it.looking === _.dont )
       break;
@@ -388,12 +419,12 @@ function onIterate( onElement )
     {
 
       if( it.own )
-      if( !_ObjectHasOwnProperty.call( it.src,k ) )
+      if( !_ObjectHasOwnProperty.call( it.src, k ) )
       continue;
 
-      let itNew = it.iteration().select( k );
+      let eit = it.iteration().select( k ).select2( k );
 
-      onElement( itNew, it );
+      onIteration.call( it, eit );
 
       if( !it.looking || it.looking === _.dont )
       break;
@@ -407,42 +438,42 @@ function onIterate( onElement )
 
 }
 
+// //
 //
-
-function onSelect( k )
-{
-  let it = this;
-  _.assert( arguments.length === 1, 'Expects single argument' );
-
-  it.level = it.level+1;
-  it.path = it.path !== it.upToken ? it.path + it.upToken + k : it.path + k;
-  it.iterator.lastPath = it.path;
-  it.iterator.lastSelect = it;
-  it.key = k;
-  it.index = it.down.hasChildren;
-
-  if( it.src )
-  it.src = it.src[ k ];
-  else
-  it.src = undefined;
-
-}
-
+// function onSelect( k )
+// {
+//   let it = this;
+//   _.assert( arguments.length === 1, 'Expects single argument' );
 //
-
-function onSelect2( k )
-{
-  let it = this;
-
-  _.assert( arguments.length === 1, 'Expects single argument' );
-
-  if( it.src2 )
-  it.src2 = it.src2[ it.key ];
-  else
-  it.src2 = undefined;
-
-  return it;
-}
+//   it.level = it.level+1;
+//   it.path = it.path !== it.upToken ? it.path + it.upToken + k : it.path + k;
+//   it.iterator.lastPath = it.path;
+//   it.iterator.lastSelect = it;
+//   it.key = k;
+//   it.index = it.down.hasChildren;
+//
+//   if( it.src )
+//   it.src = it.src[ k ];
+//   else
+//   it.src = undefined;
+//
+// }
+//
+// //
+//
+// function onSelect2( k )
+// {
+//   let it = this;
+//
+//   _.assert( arguments.length === 1, 'Expects single argument' );
+//
+//   if( it.src2 )
+//   it.src2 = it.src2[ it.key ];
+//   else
+//   it.src2 = undefined;
+//
+//   return it;
+// }
 
 // --
 // relations
@@ -454,8 +485,8 @@ Defaults.onUp = onUp;
 Defaults.onDown = onDown;
 Defaults.onTerminal = onTerminal;
 Defaults.onIterate = onIterate;
-Defaults.onSelect = onSelect;
-Defaults.onSelect2 = onSelect2;
+// Defaults.onSelect = onSelect;
+// Defaults.onSelect2 = onSelect2;
 
 Defaults.own = 0;
 Defaults.recursive = 1;
@@ -499,10 +530,14 @@ Iterator.iteration = iteratorIteration;
 Iterator.select = iteratorSelect;
 Iterator.select2 = iteratorSelect2;
 Iterator.look = iteratorLook;
+Iterator.lookUp = iteratorLookUp;
+Iterator.lookDown = iteratorLookDown;
 Iterator.visitBegin = iteratorVisitBegin;
 Iterator.visitBeginMaybe = iteratorVisitBeginMaybe;
 Iterator.visitEnd = iteratorVisitEnd;
 Iterator.visitEndMaybe = iteratorVisitEndMaybe;
+Iterator.canStartLooking = iteratorCanStartLooking;
+Iterator.canKeepLooking = iteratorCanKeepLooking;
 
 Iterator.path = null;
 Iterator.lastPath = null;
