@@ -148,51 +148,50 @@ function iteratorLook()
 
   it.visiting = it.visitingRoot || it.root !== it.src;
 
-  /* up */
-
   up();
 
-  /* level */
-
-  if( it.levelLimit !== 0 )
-  if( !( it.level < it.levelLimit ) )
-  keepLooking = false;
-
-  _.assert( _.boolIs( it.looking ) );
-  _.assert( _.boolIs( it.iterator.looking ) );
-
-  if( keepLooking === false )
-  {}
-  else if( it.looking === false )
-  keepLooking = false;
-  else if( it.iterator.looking === false )
-  keepLooking = false;
-  else if( it.visitedManyTimes )
-  keepLooking = false;
-  else if( it.ascending === false )
-  keepLooking = false;
+  if( keepLooking )
+  keepLooking = doKeepLooking();
 
   if( keepLooking === false )
   return down();
 
-  /* iterate */
-
   it.onIterate( function( eit, it )
   {
-
     eit.look();
-
-    // let itNew = it.iteration().select( k );
-    // itNew.look();
-
   });
 
   if( !it.iterable )
   it.onTerminal( it );
 
-  /* end */
-
   return down();
+
+  /* - */
+
+  function doKeepLooking()
+  {
+    let keepLooking = true;
+
+    if( it.levelLimit !== 0 )
+    if( !( it.level < it.levelLimit ) )
+    keepLooking = false;
+
+    _.assert( _.boolIs( it.looking ) );
+    _.assert( _.boolIs( it.iterator.looking ) );
+
+    if( keepLooking === false )
+    {}
+    else if( it.looking === false )
+    keepLooking = false;
+    else if( it.iterator.looking === false )
+    keepLooking = false;
+    else if( it.visitedManyTimes )
+    keepLooking = false;
+    else if( it.ascending === false )
+    keepLooking = false;
+
+    return keepLooking;
+  }
 
   /* up */
 
@@ -201,10 +200,21 @@ function iteratorLook()
 
     it.ascending = true;
 
+    if( it.iterator.trackingVisits )
+    {
+      if( it.visited.indexOf( it.src ) !== -1 )
+      it.visitedManyTimes = true;
+    }
+
     if( it.visiting )
     {
       _.assert( _.routineIs( it.onUp ) );
       let r = it.onUp.call( it, it.src, it.key, it );
+      if( r === _.dontUp )
+      {
+        it.iterator.looking = false;
+        it.looking = false;
+      }
       if( it.looking === true && r !== undefined )
       it.looking = r;
       if( it.looking === _.dont )
@@ -243,8 +253,6 @@ function iteratorVisitBegin()
 
   if( it.iterator.trackingVisits )
   {
-    if( it.visited.indexOf( it.src ) !== -1 )
-    it.visitedManyTimes = true;
     it.visited.push( it.src );
     it.visited2.push( it.src2 );
   }
@@ -361,13 +369,13 @@ function onIterate( onElement )
     {
 
       let itNew = it.iteration().select( k );
-      // itNew.look();
+
       onElement( itNew, it );
 
-      // if( !it.iterator.looking || it.iterator.looking === _.dont )
-      // break;
-
       if( !it.looking || it.looking === _.dont )
+      break;
+
+      if( !it.iterator.looking || it.iterator.looking === _.dont )
       break;
 
     }
@@ -384,16 +392,14 @@ function onIterate( onElement )
       continue;
 
       let itNew = it.iteration().select( k );
-      // itNew.look();
-      onElement( itNew, it );
 
-      // onElement( k, it );
+      onElement( itNew, it );
 
       if( !it.looking || it.looking === _.dont )
       break;
 
-      // if( !it.iterator.looking || it.iterator.looking === _.dont )
-      // break;
+      if( !it.iterator.looking || it.iterator.looking === _.dont )
+      break;
 
     }
 
@@ -557,16 +563,6 @@ function ErrorLooking()
 
 ErrorLooking.prototype = Object.create( Error.prototype );
 ErrorLooking.prototype.constructor = ErrorLooking;
-
-// ErrorLooking.make = function ErrorSelectingMake()
-// {
-//   let err = new ErrorLooking();
-//   err = _.err.apply( _, _.arrayAppendArray( [ err ], arguments ) );
-//   _.assert( err instanceof Error );
-//   _.assert( err instanceof ErrorLooking );
-//   _.assert( !!err.stack );
-//   return err;
-// }
 
 // --
 // expose
