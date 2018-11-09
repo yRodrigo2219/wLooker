@@ -75,7 +75,7 @@ function lookerIterator( o )
 // iterator
 // --
 
-function iteratorIteration()
+function iteratorIterationAct()
 {
   let it = this;
 
@@ -83,6 +83,9 @@ function iteratorIteration()
   _.assert( it.level >= 0 );
   _.assert( _.objectIs( it.iterator ) );
   _.assert( _.objectIs( it.looker ) );
+
+  _.assert( _.numberIs( it.level ) && it.level >= 0 );
+  _.assert( _.numberIs( it.logicalLevel ) && it.logicalLevel >= 0 );
 
   let newIt = Object.create( it.iterator );
   Object.assign( newIt, it.looker.Iteration );
@@ -92,6 +95,37 @@ function iteratorIteration()
   newIt.path = it.path;
   newIt.src = it.src;
   newIt.src2 = it.src2;
+
+  if( it.iterator !== it )
+  newIt.down = it;
+
+  return newIt;
+}
+
+//
+
+function iteratorIteration()
+{
+  let it = this;
+  let newIt = it.iterationAct();
+
+  newIt.logicalLevel = it.logicalLevel + 1;
+
+  _.assert( arguments.length === 0 );
+
+  return newIt;
+}
+
+//
+
+function iteratorReiteration()
+{
+  let it = this;
+  let newIt = it.iterationAct();
+
+  newIt.logicalLevel = it.logicalLevel;
+
+  _.assert( arguments.length === 0 );
 
   return newIt;
 }
@@ -332,18 +366,18 @@ function iteratorCanKeepLooking()
 // iteration
 // --
 
-function iterationIteration()
-{
-  let it = this;
-
-  _.assert( arguments.length === 0 );
-
-  let newIt = it.iterator.iteration.call( it )
-
-  newIt.down = it;
-
-  return newIt;
-}
+// function iterationIteration()
+// {
+//   let it = this;
+//
+//   _.assert( arguments.length === 0 );
+//
+//   let newIt = it.iterator.iteration.call( it )
+//
+//   newIt.down = it;
+//
+//   return newIt;
+// }
 
 // --
 // handler
@@ -497,9 +531,8 @@ Defaults.levelLimit = 0;
 
 Defaults.upToken = '/';
 Defaults.path = null;
-
-Defaults.counter = 0;
 Defaults.level = 0;
+Defaults.logicalLevel = 0;
 
 Defaults.src = null;
 Defaults.root = null;
@@ -526,7 +559,9 @@ Looker.Defaults = Defaults;
 let Iterator = Looker.Iterator = Object.create( null );
 
 Iterator.iterator = null;
+Iterator.iterationAct = iteratorIterationAct;
 Iterator.iteration = iteratorIteration;
+Iterator.reiteration = iteratorReiteration;
 Iterator.select = iteratorSelect;
 Iterator.select2 = iteratorSelect2;
 Iterator.look = iteratorLook;
@@ -555,9 +590,10 @@ Object.freeze( Iterator );
 
 let Iteration = Looker.Iteration = Object.create( null );
 
-Iteration.iteration = iterationIteration;
+// Iteration.iteration = iterationIteration;
 Iteration.hasChildren = 0;
 Iteration.level = 0,
+Iteration.logicalLevel = 0;
 Iteration.path = '/';
 Iteration.key = null;
 Iteration.index = null;
