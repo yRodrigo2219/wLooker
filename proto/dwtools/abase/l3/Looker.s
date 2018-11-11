@@ -91,10 +91,15 @@ function iteratorIterationAct()
   Object.assign( newIt, it.looker.Iteration );
   Object.preventExtensions( newIt );
 
-  newIt.level = it.level;
-  newIt.path = it.path;
-  newIt.src = it.src;
-  newIt.src2 = it.src2;
+  // debugger;
+  _.mapExtend( newIt, _.mapOnly( it, it.looker.IterationPreserve ) );
+  // _.mapExtendConditional( _.field.mapper.primitive, _.mapOnly( it, it.looker.IterationPreserve ) );
+  // debugger;
+
+  // newIt.level = it.level;
+  // newIt.path = it.path;
+  // newIt.src = it.src;
+  // newIt.src2 = it.src2;
 
   if( it.iterator !== it )
   newIt.down = it;
@@ -543,6 +548,7 @@ Defaults.root2 = null;
 Defaults.context = null;
 Defaults.looker = null;
 Defaults.it = null;
+Defaults._inherited = null;
 
 //
 
@@ -604,12 +610,25 @@ Iteration.looking = true;
 Iteration.ascending = true;
 Iteration.visitedManyTimes = false;
 Iteration._ = null;
+Iteration._inherited = null;
 Iteration.down = null;
 Iteration.visiting = false;
 Iteration.iterable = null;
 Iteration.trackingVisits = 1;
 
 Object.freeze( Iteration );
+
+//
+
+let IterationPreserve = Looker.IterationPreserve = Object.create( null );
+
+IterationPreserve.level = null;
+IterationPreserve.path = null;
+IterationPreserve.src = null;
+IterationPreserve.src2 = null;
+IterationPreserve._inherited =  null;
+
+Object.freeze( IterationPreserve );
 
 //
 
