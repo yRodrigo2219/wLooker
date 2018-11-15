@@ -632,27 +632,30 @@ Object.freeze( IterationPreserve );
 
 //
 
-function ErrorLooking()
-{
+let ErrorLooking = _.error_functor( 'ErrorLooking' ); 
 
-  if( !( this instanceof ErrorLooking ) )
-  {
-    let err1 = new ErrorLooking();
-    let err2 = _.err.apply( _, _.arrayAppendArray( [ err1, '\n' ], arguments ) );
-
-    _.assert( err2 instanceof Error );
-    _.assert( err2 instanceof ErrorLooking );
-    _.assert( !!err2.stack );
-
-    return err2;
-  }
-
-  _.assert( arguments.length === 0 );
-  return this;
-}
-
-ErrorLooking.prototype = Object.create( Error.prototype );
-ErrorLooking.prototype.constructor = ErrorLooking;
+// function ErrorLooking()
+// {
+//
+//   if( !( this instanceof ErrorLooking ) )
+//   {
+//     let err1 = new ErrorLooking();
+//     let err2 = _.err.apply( _, _.arrayAppendArray( [ err1, '\n' ], arguments ) );
+//
+//     _.assert( err2 instanceof Error );
+//     _.assert( err2 instanceof ErrorLooking );
+//     _.assert( !!err2.stack );
+//
+//     return err2;
+//   }
+//
+//   _.assert( arguments.length === 0 );
+//   return this;
+// }
+//
+// ErrorLooking.prototype = Object.create( Error.prototype );
+// ErrorLooking.prototype.constructor = ErrorLooking;
+// ErrorLooking.constructor = ErrorLooking;
 
 // --
 // expose
