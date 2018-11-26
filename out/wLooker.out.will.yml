@@ -165,7 +165,7 @@ reflector:
       ./dwtools/abase/l3.test/Look.test.s: true
     srcFilter:
       basePath: ./proto
-      prefixPath: proto
+      prefixPath: .
     dstFilter:
       basePath: .
       prefixPath: .
