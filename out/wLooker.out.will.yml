@@ -59,8 +59,6 @@ path:
       - ./dwtools/abase/l3/Looker.s
       - ./dwtools/abase/l3.test
       - ./dwtools/abase/l3.test/Look.test.s
-      - ./dwtools/amid
-      - ./dwtools/atop
     criterion:
       default: 1
       debug: 1
