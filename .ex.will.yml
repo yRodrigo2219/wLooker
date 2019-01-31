@@ -1,9 +1,10 @@
 
+
 about :
 
   name : "wLooker"
   description : "Collection of light-weight routines to traverse complex data structure. The module takes care of cycles in a data structure( recursions ) and can be used for comparison or operation on several similar data structures. Please see wComparator which based on the module for comparison."
-  version : "0.3.34"
+  version : "0.3.35"
   enabled : 1
   interpreters :
   - nodejs >= 6.0.0
