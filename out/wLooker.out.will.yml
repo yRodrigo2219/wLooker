@@ -209,7 +209,7 @@ step:
       reflector: 'reflector::reflect.proto.*=1'
     inherit:
       - predefined.reflect
-  reflect.submodules.debug:
+  reflect.submodules.:
     criterion:
       debug: 1
       raw: 0
@@ -217,7 +217,7 @@ step:
       reflector: 'reflector::reflect.submodules*=1'
     inherit:
       - predefined.reflect
-  reflect.submodules.debug.raw:
+  reflect.submodules.raw:
     criterion:
       debug: 1
       raw: 1
@@ -292,23 +292,6 @@ exported:
       tar: 1
       public: 1
     exportedReflector: 'reflector::exported.0'
-    exportedReflectorData:
-      filePath: ./proto
-      srcFilter:
-        filePath: /C/pro/web/Port/package/wLooker/proto
-        maskAll:
-          excludeAny:
-            - !<tag:yaml.org,2002:js/regexp> /(\W|^)node_modules(\W|$)/
-            - !<tag:yaml.org,2002:js/regexp> /\.unique$/
-            - !<tag:yaml.org,2002:js/regexp> /\.git$/
-            - !<tag:yaml.org,2002:js/regexp> /\.svn$/
-            - !<tag:yaml.org,2002:js/regexp> /\.hg$/
-            - !<tag:yaml.org,2002:js/regexp> /\.tmp($|\/)/
-            - !<tag:yaml.org,2002:js/regexp> /\.DS_Store$/
-            - !<tag:yaml.org,2002:js/regexp> /(^|\/)\.(?!$|\/|\.)/
-            - !<tag:yaml.org,2002:js/regexp> /(^|\/)-/
-        basePath:
-          /C/pro/web/Port/package/wLooker/proto: /C/pro/web/Port/package/wLooker/proto
     exportedFilesReflector: 'reflector::exportedFiles.0'
     exportedDirPath: 'path::exportedDir.0'
     exportedFilesPath: 'path::exportedFiles.0'
