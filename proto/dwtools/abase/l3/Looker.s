@@ -45,6 +45,8 @@ function lookerIterator( o )
   let iterator = Object.create( o.looker );
   Object.assign( iterator, this.Iterator );
   Object.assign( iterator, o );
+  if( o._extend )
+  Object.assign( iterator, o._extend );
 
   delete iterator.it;
 
@@ -84,7 +86,6 @@ function iteratorIterationAct()
   _.assert( it.level >= 0 );
   _.assert( _.objectIs( it.iterator ) );
   _.assert( _.objectIs( it.looker ) );
-
   _.assert( _.numberIs( it.level ) && it.level >= 0 );
   _.assert( _.numberIs( it.logicalLevel ) && it.logicalLevel >= 0 );
 
@@ -92,15 +93,10 @@ function iteratorIterationAct()
   Object.assign( newIt, it.looker.Iteration );
   Object.preventExtensions( newIt );
 
-  // debugger;
-  _.mapExtend( newIt, _.mapOnly( it, it.looker.IterationPreserve ) );
-  // _.mapExtendConditional( _.field.mapper.primitive, _.mapOnly( it, it.looker.IterationPreserve ) );
-  // debugger;
+  for( let k in it.looker.IterationPreserve )
+  newIt[ k ] = it[ k ];
 
-  // newIt.level = it.level;
-  // newIt.path = it.path;
-  // newIt.src = it.src;
-  // newIt.src2 = it.src2;
+  // _.mapExtend( newIt, _.mapOnly( it, it.looker.IterationPreserve ) );
 
   if( it.iterator !== it )
   newIt.down = it;
@@ -469,11 +465,16 @@ function onIterate( onIteration )
     for( let k in it.src )
     {
 
+      // debugger;
+
       if( it.own )
       if( !_ObjectHasOwnProperty.call( it.src, k ) )
       continue;
 
       let eit = it.iteration().select( k ).select2( k );
+
+      // if( eit.path === '/predefined.common' )
+      // debugger;
 
       onIteration.call( it, eit );
 
@@ -560,7 +561,8 @@ Defaults.root2 = null;
 Defaults.context = null;
 Defaults.looker = null;
 Defaults.it = null;
-Defaults._inherited = null;
+Defaults._current = null;
+Defaults._extend = null;
 
 //
 
@@ -608,7 +610,6 @@ Object.freeze( Iterator );
 
 let Iteration = Looker.Iteration = Object.create( null );
 
-// Iteration.iteration = iterationIteration;
 Iteration.hasChildren = 0;
 Iteration.level = 0,
 Iteration.logicalLevel = 0;
@@ -622,7 +623,7 @@ Iteration.looking = true;
 Iteration.ascending = true;
 Iteration.visitedManyTimes = false;
 Iteration._ = null;
-Iteration._inherited = null;
+Iteration._current = null;
 Iteration.down = null;
 Iteration.visiting = false;
 Iteration.iterable = null;
@@ -638,7 +639,7 @@ IterationPreserve.level = null;
 IterationPreserve.path = null;
 IterationPreserve.src = null;
 IterationPreserve.src2 = null;
-IterationPreserve._inherited =  null;
+IterationPreserve._current =  null;
 
 Object.freeze( IterationPreserve );
 
