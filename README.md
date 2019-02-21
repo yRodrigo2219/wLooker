@@ -8,25 +8,3 @@ Collection of light-weight routines to traverse complex data structure. The modu
 npm install
 node sample/Sample.s
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

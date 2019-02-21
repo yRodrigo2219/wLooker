@@ -80,7 +80,7 @@ function look( test )
 var Self =
 {
 
-  name : 'Tools/base/l2/Look',
+  name : 'Tools/base/l3/Look',
   silencing : 1,
   enabled : 1,
 
@@ -91,7 +91,7 @@ var Self =
   tests :
   {
 
-    look : look,
+    look,
 
   }
 

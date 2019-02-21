@@ -33,40 +33,40 @@ _.assert( !!_realGlobal_ );
 // looker
 // --
 
-function lookerIterator( o )
+function lookerIteratorMake( o )
 {
 
   _.assert( arguments.length === 1 );
   _.assert( _.mapIs( o ) );
   _.assert( _.objectIs( this.Iterator ) );
+  _.assert( _.objectIs( o.Looker ) );
+  _.assert( o.looker === undefined );
 
   /* */
 
-  let iterator = Object.create( o.looker );
+  let iterator = Object.create( o.Looker );
   Object.assign( iterator, this.Iterator );
   Object.assign( iterator, o );
-  if( o._extend )
-  Object.assign( iterator, o._extend );
+  if( o.iteratorExtension )
+  Object.assign( iterator, o.iteratorExtension );
 
   delete iterator.it;
-
-  _.assert( iterator.it === undefined );
 
   iterator.iterator = iterator;
 
   if( iterator.trackingVisits )
   {
     iterator.visited = [];
-    iterator.visited2 = [];
+    // iterator.visited2 = [];
   }
 
   if( iterator.path === null )
   iterator.path = iterator.upToken;
-
   iterator.lastPath = iterator.path;
 
   Object.preventExtensions( iterator );
 
+  _.assert( iterator.it === undefined );
   _.assert( iterator.level !== undefined );
   _.assert( iterator.path !== undefined );
   _.assert( _.strIs( iterator.lastPath ) );
@@ -78,25 +78,25 @@ function lookerIterator( o )
 // iterator
 // --
 
-function iteratorIterationAct()
+function iteratorIterationMakeAct()
 {
   let it = this;
 
   _.assert( arguments.length === 0 );
   _.assert( it.level >= 0 );
   _.assert( _.objectIs( it.iterator ) );
-  _.assert( _.objectIs( it.looker ) );
+  // _.assert( _.objectIs( it.looker ) );
+  _.assert( _.objectIs( it.Looker ) );
+  _.assert( it.looker === undefined );
   _.assert( _.numberIs( it.level ) && it.level >= 0 );
   _.assert( _.numberIs( it.logicalLevel ) && it.logicalLevel >= 0 );
 
   let newIt = Object.create( it.iterator );
-  Object.assign( newIt, it.looker.Iteration );
+  Object.assign( newIt, it.Looker.Iteration );
   Object.preventExtensions( newIt );
 
-  for( let k in it.looker.IterationPreserve )
+  for( let k in it.Looker.IterationPreserve )
   newIt[ k ] = it[ k ];
-
-  // _.mapExtend( newIt, _.mapOnly( it, it.looker.IterationPreserve ) );
 
   if( it.iterator !== it )
   newIt.down = it;
@@ -142,11 +142,7 @@ function iteratorSelect( k )
   _.assert( it.level >= 0 );
   _.assert( _.objectIs( it.down ) );
 
-  // if( _.strIs( k ) && _.strHas( k, 'commonDir' ) )
-  // debugger;
-
   it.level = it.level+1;
-  // debugger;
 
   let k2 = k;
 
@@ -154,7 +150,6 @@ function iteratorSelect( k )
   k2 = '"' + k2 + '"';
 
   it.path = it.path !== it.upToken ? it.path + it.upToken + k2 : it.path + k2;
-  // debugger
   it.iterator.lastPath = it.path;
   it.iterator.lastSelect = it;
   it.key = k;
@@ -165,31 +160,7 @@ function iteratorSelect( k )
   else
   it.src = undefined;
 
-  // it.onSelect( k );
-  // it.select2( k );
-
   return it;
-}
-
-//
-
-function iteratorSelect2( k )
-{
-  let it = this;
-
-  _.assert( arguments.length === 1, 'Expects single argument' );
-  _.assert( it.level >= 0 );
-  _.assert( _.objectIs( it.down ) );
-
-  _.assert( arguments.length === 1, 'Expects single argument' );
-
-  if( it.src2 )
-  it.src2 = it.src2[ it.key ];
-  else
-  it.src2 = undefined;
-
-  return it;
-  // return it.onSelect2( k );
 }
 
 //
@@ -229,7 +200,7 @@ function iteratorLook()
 
 //
 
-function iteratorLookUp()
+function iteratorLookUp() // xxx
 {
   let it = this;
 
@@ -241,20 +212,33 @@ function iteratorLookUp()
     it.visitedManyTimes = true;
   }
 
-  if( it.visiting )
+  if( it.visiting ) // xxx : merge visiting and continue, maybe?
   {
+
+    _.assert( it.continue );
+
+    // debugger;
+    if( it.continue )
+    it.iterable = it.onWhichIterable( it.src );
+
     _.assert( _.routineIs( it.onUp ) );
     let r = it.onUp.call( it, it.src, it.key, it );
-    if( r === _.dontUp )
-    {
-      it.iterator.looking = false;
-      it.looking = false;
-    }
-    if( it.looking === true && r !== undefined )
-    it.looking = r;
-    if( it.looking === _.dont )
-    it.looking = false;
-    _.assert( _.boolIs( it.looking ), () => 'Expects it.onUp returns boolean, but got ' + _.strType( it.looking ) );
+    _.assert( r === undefined );
+
+    // let r = it.onUp.call( it, it.src, it.key, it );
+    // if( r === _.dontUp )
+    // {
+    //   it.iterator.continue = false;
+    //   it.continue = false;
+    // }
+
+    // if( it.continue === true && r !== undefined )
+    // it.continue = r;
+
+    if( it.continue === _.dont )
+    it.continue = false;
+    _.assert( _.boolIs( it.continue ), () => 'Expects boolean it.continue, but got ' + _.strType( it.continue ) );
+
   }
 
   it.visitBeginMaybe()
@@ -272,7 +256,10 @@ function iteratorLookDown()
   if( it.visiting )
   {
     if( it.onDown )
-    it.result = it.onDown.call( it, it.src, it.key, it );
+    {
+      let r = it.onDown.call( it, it.src, it.key, it );
+      _.assert( r === undefined );
+    }
   }
 
   it.visitEndMaybe();
@@ -289,7 +276,7 @@ function iteratorVisitBegin()
   if( it.iterator.trackingVisits )
   {
     it.visited.push( it.src );
-    it.visited2.push( it.src2 );
+    // it.visited2.push( it.src2 );
   }
 
 }
@@ -315,8 +302,8 @@ function iteratorVisitEnd()
   {
     _.assert( Object.is( it.visited[ it.visited.length-1 ], it.src ), () => 'Top-most visit does not match ' + it.path );
     it.visited.pop();
-    _.assert( Object.is( it.visited2[ it.visited2.length-1 ], it.src2 ), 'Top-most visit does not match ' + it.path );
-    it.visited2.pop();
+    // _.assert( Object.is( it.visited2[ it.visited2.length-1 ], it.src2 ), 'Top-most visit does not match ' + it.path );
+    // it.visited2.pop();
   }
 
 }
@@ -358,14 +345,14 @@ function iteratorCanKeepLooking()
   if( !( it.level < it.levelLimit ) )
   keepLooking = false;
 
-  _.assert( _.boolIs( it.looking ) );
-  _.assert( _.boolIs( it.iterator.looking ) );
+  _.assert( _.boolIs( it.continue ) );
+  _.assert( _.boolIs( it.iterator.continue ) );
 
   if( keepLooking === false )
   {}
-  else if( it.looking === false )
+  else if( it.continue === false )
   keepLooking = false;
-  else if( it.iterator.looking === false )
+  else if( it.iterator.continue === false )
   keepLooking = false;
   else if( it.visitedManyTimes )
   keepLooking = false;
@@ -376,36 +363,17 @@ function iteratorCanKeepLooking()
 }
 
 // --
-// iteration
-// --
-
-// function iterationIteration()
-// {
-//   let it = this;
-//
-//   _.assert( arguments.length === 0 );
-//
-//   let newIt = it.iterator.iteration.call( it )
-//
-//   newIt.down = it;
-//
-//   return newIt;
-// }
-
-// --
 // handler
 // --
 
 function onUp( e,k,it )
 {
-  return it.looking;
 }
 
 //
 
 function onDown( e,k,it )
 {
-  return it.result;
 }
 
 //
@@ -422,66 +390,51 @@ function onIterate( onIteration )
 {
   let it = this;
 
-  if( _.arrayIs( it.src ) || _.argumentsArrayIs( it.src ) )
-  {
-    it.iterable = 'array-like';
-  }
-  else if( _.objectLike( it.src ) )
-  {
-    it.iterable = 'object-like';
-  }
-  else
-  {
-    it.iterable = false;
-  }
-
   _.assert( arguments.length === 1 );
   _.assert( it.iterable !== null && it.iterable !== undefined );
   _.assert( _.routineIs( onIteration ) );
   _.assert( onIteration.length === 0 || onIteration.length === 1 );
+  _.assert( !!it.continue );
+  _.assert( !!it.iterator.continue );
 
   if( it.iterable === 'array-like' )
   {
 
     for( let k = 0 ; k < it.src.length ; k++ )
     {
-
-      let eit = it.iteration().select( k ).select2( k );
+      // debugger;
+      let eit = it.iteration().select( k )/*.select2( k )*/;
 
       onIteration.call( it, eit );
 
-      if( !it.looking || it.looking === _.dont )
+      if( !it.continue || it.continue === _.dont )
       break;
 
-      if( !it.iterator.looking || it.iterator.looking === _.dont )
+      if( !it.iterator.continue || it.iterator.continue === _.dont )
       break;
 
     }
 
   }
-  else if( it.iterable === 'object-like' )
+  else if( it.iterable === 'map-like' )
   {
 
     for( let k in it.src )
     {
 
-      // debugger;
-
       if( it.own )
       if( !_ObjectHasOwnProperty.call( it.src, k ) )
       continue;
 
-      let eit = it.iteration().select( k ).select2( k );
-
-      // if( eit.path === '/predefined.common' )
       // debugger;
+      let eit = it.iteration().select( k )/*.select2( k )*/;
 
       onIteration.call( it, eit );
 
-      if( !it.looking || it.looking === _.dont )
+      if( !it.continue || it.continue === _.dont )
       break;
 
-      if( !it.iterator.looking || it.iterator.looking === _.dont )
+      if( !it.iterator.continue || it.iterator.continue === _.dont )
       break;
 
     }
@@ -490,42 +443,26 @@ function onIterate( onIteration )
 
 }
 
-// //
 //
-// function onSelect( k )
-// {
-//   let it = this;
-//   _.assert( arguments.length === 1, 'Expects single argument' );
-//
-//   it.level = it.level+1;
-//   it.path = it.path !== it.upToken ? it.path + it.upToken + k : it.path + k;
-//   it.iterator.lastPath = it.path;
-//   it.iterator.lastSelect = it;
-//   it.key = k;
-//   it.index = it.down.hasChildren;
-//
-//   if( it.src )
-//   it.src = it.src[ k ];
-//   else
-//   it.src = undefined;
-//
-// }
-//
-// //
-//
-// function onSelect2( k )
-// {
-//   let it = this;
-//
-//   _.assert( arguments.length === 1, 'Expects single argument' );
-//
-//   if( it.src2 )
-//   it.src2 = it.src2[ it.key ];
-//   else
-//   it.src2 = undefined;
-//
-//   return it;
-// }
+
+function onWhichIterable( src )
+{
+  let it = this;
+
+  if( _.arrayLike( src ) )
+  {
+    return 'array-like';
+  }
+  else if( _.mapLike( src ) )
+  {
+    return 'map-like';
+  }
+  else
+  {
+    return false;
+  }
+
+}
 
 // --
 // relations
@@ -537,8 +474,7 @@ Defaults.onUp = onUp;
 Defaults.onDown = onDown;
 Defaults.onTerminal = onTerminal;
 Defaults.onIterate = onIterate;
-// Defaults.onSelect = onSelect;
-// Defaults.onSelect2 = onSelect2;
+Defaults.onWhichIterable = onWhichIterable;
 
 Defaults.own = 0;
 Defaults.recursive = 1;
@@ -555,61 +491,59 @@ Defaults.logicalLevel = 0;
 Defaults.src = null;
 Defaults.root = null;
 
-Defaults.src2 = null;
-Defaults.root2 = null;
+// Defaults.src2 = null;
+// Defaults.root2 = null;
 
 Defaults.context = null;
-Defaults.looker = null;
+Defaults.Looker = null;
 Defaults.it = null;
-Defaults._current = null;
-Defaults._extend = null;
+Defaults.iterationCurrent = null;
+Defaults.iteratorExtension = null;
 
 //
 
-let Looker = Defaults.looker = Object.create( null );
-Looker.looker = Looker;
-Looker.iterator = lookerIterator;
-// Looker.Iterator = Iterator;
-// Looker.Iteration = Iteration;
-Looker.Defaults = Defaults;
+let Looker = Defaults.Looker = Object.create( null );
+Looker.Looker = Looker;
+Looker.Iterator = null;
+Looker.Iteration = null;
+Looker.IterationPreserve = null;
+Looker.iterator = lookerIteratorMake;
 
 //
 
-// let Iterator = _global.wTools.Iterator = _global.wTools.Iterator || Object.create( null );
 let Iterator = Looker.Iterator = Object.create( null );
 
 Iterator.iterator = null;
-Iterator.iterationAct = iteratorIterationAct;
+Iterator.iterationAct = iteratorIterationMakeAct;
 Iterator.iteration = iteratorIteration;
 Iterator.reiteration = iteratorReiteration;
 Iterator.select = iteratorSelect;
-Iterator.select2 = iteratorSelect2;
 Iterator.look = iteratorLook;
 Iterator.lookUp = iteratorLookUp;
 Iterator.lookDown = iteratorLookDown;
+// Iterator.whichIterable = onWhichIterable;
 Iterator.visitBegin = iteratorVisitBegin;
 Iterator.visitBeginMaybe = iteratorVisitBeginMaybe;
 Iterator.visitEnd = iteratorVisitEnd;
 Iterator.visitEndMaybe = iteratorVisitEndMaybe;
 Iterator.canStartLooking = iteratorCanStartLooking;
 Iterator.canKeepLooking = iteratorCanKeepLooking;
-
 Iterator.path = null;
 Iterator.lastPath = null;
 Iterator.lastSelect = null;
-Iterator.looking = true;
+Iterator.continue = true;
 Iterator.key = null;
 Iterator.error = null;
-
 Iterator.visited = null;
-Iterator.visited2 = null;
+// Iterator.visited2 = null; // xxx
+
+_.mapSupplement( Iterator, Defaults );
 
 Object.freeze( Iterator );
 
 //
 
 let Iteration = Looker.Iteration = Object.create( null );
-
 Iteration.hasChildren = 0;
 Iteration.level = 0,
 Iteration.logicalLevel = 0;
@@ -617,64 +551,37 @@ Iteration.path = '/';
 Iteration.key = null;
 Iteration.index = null;
 Iteration.src = null;
-Iteration.src2 = null;
-Iteration.result = true;
-Iteration.looking = true;
+// Iteration.src2 = null;
+Iteration.continue = true;
 Iteration.ascending = true;
 Iteration.visitedManyTimes = false;
 Iteration._ = null;
-Iteration._current = null;
+Iteration.iterationCurrent = null;
 Iteration.down = null;
 Iteration.visiting = false;
 Iteration.iterable = null;
 Iteration.trackingVisits = 1;
-
 Object.freeze( Iteration );
 
 //
 
 let IterationPreserve = Looker.IterationPreserve = Object.create( null );
-
 IterationPreserve.level = null;
 IterationPreserve.path = null;
 IterationPreserve.src = null;
-IterationPreserve.src2 = null;
-IterationPreserve._current =  null;
-
+// IterationPreserve.src2 = null;
+IterationPreserve.iterationCurrent =  null;
 Object.freeze( IterationPreserve );
 
 //
 
 let ErrorLooking = _.error_functor( 'ErrorLooking' );
 
-// function ErrorLooking()
-// {
-//
-//   if( !( this instanceof ErrorLooking ) )
-//   {
-//     let err1 = new ErrorLooking();
-//     let err2 = _.err.apply( _, _.arrayAppendArray( [ err1, '\n' ], arguments ) );
-//
-//     _.assert( err2 instanceof Error );
-//     _.assert( err2 instanceof ErrorLooking );
-//     _.assert( !!err2.stack );
-//
-//     return err2;
-//   }
-//
-//   _.assert( arguments.length === 0 );
-//   return this;
-// }
-//
-// ErrorLooking.prototype = Object.create( Error.prototype );
-// ErrorLooking.prototype.constructor = ErrorLooking;
-// ErrorLooking.constructor = ErrorLooking;
-
 // --
 // expose
 // --
 
-function _look_pre( routine, args )
+function look_pre( routine, args )
 {
   let o;
 
@@ -695,23 +602,28 @@ function _look_pre( routine, args )
   }
   else _.assert( 0,'look expects single options map, 2 or 3 arguments' );
 
-  if( o.looker && _.prototypeOf( o.looker, o ) )
-  {
-    return o;
-  }
+  // if( o.Looker && _.prototypeOf( o.Looker, o ) ) // xxx
+  // {
+  //   debugger; xxx
+  //   return o;
+  // }
 
-  o.looker = o.looker || routine.defaults.looker;
+  // debugger;
+  o.Looker = o.Looker || routine.defaults.Looker;
 
-  _.mapComplementPreservingUndefines( o, routine.defaults );
-  _.routineOptionsPreservingUndefines( routine, o, o.looker.Defaults );
+  // debugger;
+  _.assert( o.Looker.Looker === o.Looker );
+  _.assert( _.objectIs( o.Looker ) );
+  _.assert( o.looker === undefined );
+  _.routineOptionsPreservingUndefines( routine, o );
   _.assert( args.length === 1 || args.length === 2 || args.length === 3 );
   _.assert( arguments.length === 2, 'Expects exactly two arguments' );
-  _.assert( o.onUp === null || o.onUp.length === 0 || o.onUp.length === 3, 'onUp should Expects exactly three arguments' );
-  _.assert( o.onDown === null || o.onDown.length === 0 || o.onDown.length === 3, 'onUp should Expects exactly three arguments' );
+  _.assert( o.onUp === null || o.onUp.length === 0 || o.onUp.length === 3, 'onUp should expect exactly three arguments' );
+  _.assert( o.onDown === null || o.onDown.length === 0 || o.onDown.length === 3, 'onUp should expect exactly three arguments' );
 
   if( o.it === null || o.it === undefined )
   {
-    let iterator = o.looker.iterator( o );
+    let iterator = o.Looker.iterator( o );
     let iteration = iterator.iteration();
     return iteration;
   }
@@ -724,43 +636,53 @@ function _look_pre( routine, args )
 
 //
 
-function _look_body( it )
+function look_body( it )
 {
 
   _.assert( arguments.length === 1, 'Expects single argument' );
-  _.assert( _.objectIs( it.looker ) );
-  _.assert( _.prototypeOf( it.looker, it ) );
+  _.assert( _.objectIs( it.Looker ) );
+  _.assert( _.prototypeOf( it.Looker, it ) );
+  _.assert( it.looker === undefined );
 
   return it.look();
 }
 
-_look_body.defaults = Object.create( Defaults );
+look_body.defaults = Object.create( Defaults );
 
 //
 
-let look = _.routineFromPreAndBody( _look_pre, _look_body );
+let look = _.routineFromPreAndBody( look_pre, look_body );
 
 var defaults = look.defaults;
-
 defaults.own = 0;
 defaults.recursive = 1;
 
 //
 
-let lookOwn = _.routineFromPreAndBody( _look_pre, _look_body );
+let lookOwn = _.routineFromPreAndBody( look_pre, look_body );
 
 var defaults = lookOwn.defaults;
-
 defaults.own = 1;
 defaults.recursive = 1;
 
 //
 
-function iteratorIs( it )
+function lookerIs( looker )
+{
+  if( !looker )
+  return false;
+  if( !looker.Looker )
+  return false;
+  return _.prototypeOf( looker, looker.Looker );
+}
+
+//
+
+function lookIteratorIs( it )
 {
   if( !it )
   return false;
-  if( !it.looker )
+  if( !it.Looker )
   return false;
   if( it.iterator !== it )
   return false;
@@ -769,11 +691,11 @@ function iteratorIs( it )
 
 //
 
-function iterationIs( it )
+function lookIterationIs( it )
 {
   if( !it )
   return false;
-  if( !it.looker )
+  if( !it.Looker )
   return false;
   if( !it.iterator )
   return false;
@@ -789,14 +711,15 @@ function iterationIs( it )
 let Supplement =
 {
 
-  Looker : Looker,
-  ErrorLooking : ErrorLooking,
+  Looker,
+  ErrorLooking,
 
-  look : look,
-  lookOwn : lookOwn,
+  look,
+  lookOwn,
 
-  iteratorIs : iteratorIs,
-  iterationIs : iterationIs,
+  lookerIs,
+  lookIteratorIs,
+  lookIterationIs,
 
 }
 
