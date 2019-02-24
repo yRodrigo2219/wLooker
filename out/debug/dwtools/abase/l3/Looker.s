@@ -57,7 +57,6 @@ function lookerIteratorMake( o )
   if( iterator.trackingVisits )
   {
     iterator.visited = [];
-    // iterator.visited2 = [];
   }
 
   if( iterator.path === null )
@@ -172,22 +171,17 @@ function iteratorLook()
   _.assert( it.level >= 0 );
   _.assert( arguments.length === 0 );
 
-  let startLooking = it.canStartLooking();
-  if( !startLooking )
+  it.visiting = it.canVisit();
+  if( !it.visiting )
   return it;
 
-  if( it.down )
-  it.down.hasChildren += 1;
+  it.visitUp();
 
-  it.visiting = it.visitingRoot || it.root !== it.src;
+  it.ascending = it.canAscend();
+  if( it.ascending === false )
+  return it.visitDown();
 
-  it.lookUp();
-
-  let keepLooking = it.canKeepLooking();
-  if( keepLooking === false )
-  return it.lookDown();
-
-  it.onIterate( function( eit )
+  it.onAscend( function( eit )
   {
     eit.look();
   });
@@ -195,16 +189,22 @@ function iteratorLook()
   if( !it.iterable )
   it.onTerminal();
 
-  return it.lookDown();
+  return it.visitDown();
 }
 
 //
 
-function iteratorLookUp() // xxx
+function iteratorVisitUp() // xxx
 {
   let it = this;
 
   it.ascending = true;
+
+  if( !it.visiting )
+  return;
+
+  if( it.down )
+  it.down.hasChildren += 1;
 
   if( it.iterator.trackingVisits )
   {
@@ -212,34 +212,18 @@ function iteratorLookUp() // xxx
     it.visitedManyTimes = true;
   }
 
-  if( it.visiting ) // xxx : merge visiting and continue, maybe?
-  {
+  _.assert( it.continue );
 
-    _.assert( it.continue );
+  if( it.continue )
+  it.iterable = it.onIterable( it.src );
 
-    // debugger;
-    if( it.continue )
-    it.iterable = it.onWhichIterable( it.src );
+  _.assert( _.routineIs( it.onUp ) );
+  let r = it.onUp.call( it, it.src, it.key, it );
+  _.assert( r === undefined );
 
-    _.assert( _.routineIs( it.onUp ) );
-    let r = it.onUp.call( it, it.src, it.key, it );
-    _.assert( r === undefined );
-
-    // let r = it.onUp.call( it, it.src, it.key, it );
-    // if( r === _.dontUp )
-    // {
-    //   it.iterator.continue = false;
-    //   it.continue = false;
-    // }
-
-    // if( it.continue === true && r !== undefined )
-    // it.continue = r;
-
-    if( it.continue === _.dont )
-    it.continue = false;
-    _.assert( _.boolIs( it.continue ), () => 'Expects boolean it.continue, but got ' + _.strType( it.continue ) );
-
-  }
+  if( it.continue === _.dont )
+  it.continue = false;
+  _.assert( _.boolIs( it.continue ), () => 'Expects boolean it.continue, but got ' + _.strType( it.continue ) );
 
   it.visitBeginMaybe()
 
@@ -247,22 +231,22 @@ function iteratorLookUp() // xxx
 
 //
 
-function iteratorLookDown()
+function iteratorVisitDown()
 {
   let it = this;
 
   it.ascending = false;
 
-  if( it.visiting )
-  {
-    if( it.onDown )
-    {
-      let r = it.onDown.call( it, it.src, it.key, it );
-      _.assert( r === undefined );
-    }
-  }
+  if( !it.visiting )
+  return;
 
   it.visitEndMaybe();
+
+  if( it.onDown )
+  {
+    let r = it.onDown.call( it, it.src, it.key, it );
+    _.assert( r === undefined );
+  }
 
   return it;
 }
@@ -276,7 +260,6 @@ function iteratorVisitBegin()
   if( it.iterator.trackingVisits )
   {
     it.visited.push( it.src );
-    // it.visited2.push( it.src2 );
   }
 
 }
@@ -302,8 +285,6 @@ function iteratorVisitEnd()
   {
     _.assert( Object.is( it.visited[ it.visited.length-1 ], it.src ), () => 'Top-most visit does not match ' + it.path );
     it.visited.pop();
-    // _.assert( Object.is( it.visited2[ it.visited2.length-1 ], it.src2 ), 'Top-most visit does not match ' + it.path );
-    // it.visited2.pop();
   }
 
 }
@@ -323,43 +304,52 @@ function iteratorVisitEndMaybe()
 
 //
 
-function iteratorCanStartLooking()
+function iteratorCanVisit()
 {
   let it = this;
-  let startLooking = true;
 
   if( !it.recursive && it.down )
-  startLooking = false;
+  return false
 
-  return startLooking;
+  if( !it.visitingRoot && it.root === it.src )
+  return false;
+
+  return true
 }
 
 //
 
-function iteratorCanKeepLooking()
+function iteratorCanAscend()
 {
   let it = this;
-  let keepLooking = true;
-
-  if( it.levelLimit !== 0 )
-  if( !( it.level < it.levelLimit ) )
-  keepLooking = false;
 
   _.assert( _.boolIs( it.continue ) );
   _.assert( _.boolIs( it.iterator.continue ) );
 
-  if( keepLooking === false )
-  {}
-  else if( it.continue === false )
-  keepLooking = false;
-  else if( it.iterator.continue === false )
-  keepLooking = false;
-  else if( it.visitedManyTimes )
-  keepLooking = false;
-  else if( it.ascending === false )
-  keepLooking = false;
+  if( !it.ascending )
+  return false;
 
-  return keepLooking;
+  if( it.continue === false )
+  return false;
+  else if( it.iterator.continue === false )
+  return false;
+  else if( it.visitedManyTimes )
+  return false;
+
+  // if( it.levelLimit !== 0 )
+  // if( !( it.level < it.levelLimit ) )
+  // return false;
+
+  _.assert( _.numberIs( it.recursive ) );
+  if( it.recursive > 0 )
+  if( !( it.level < it.recursive ) )
+  return false;
+
+  // if( it.levelLimit !== 0 )
+  // if( !( it.level < it.levelLimit ) )
+  // return false;
+
+  return true;
 }
 
 // --
@@ -386,7 +376,7 @@ function onTerminal()
 
 //
 
-function onIterate( onIteration )
+function onAscend( onIteration )
 {
   let it = this;
 
@@ -445,7 +435,7 @@ function onIterate( onIteration )
 
 //
 
-function onWhichIterable( src )
+function onIterable( src )
 {
   let it = this;
 
@@ -473,27 +463,19 @@ let Defaults = Object.create( null );
 Defaults.onUp = onUp;
 Defaults.onDown = onDown;
 Defaults.onTerminal = onTerminal;
-Defaults.onIterate = onIterate;
-Defaults.onWhichIterable = onWhichIterable;
-
+Defaults.onAscend = onAscend;
+Defaults.onIterable = onIterable;
 Defaults.own = 0;
-Defaults.recursive = 1;
+Defaults.recursive = Infinity;
 Defaults.visitingRoot = 1;
-
 Defaults.trackingVisits = 1;
-Defaults.levelLimit = 0;
-
+// Defaults.levelLimit = 0;
 Defaults.upToken = '/';
 Defaults.path = null;
 Defaults.level = 0;
 Defaults.logicalLevel = 0;
-
 Defaults.src = null;
 Defaults.root = null;
-
-// Defaults.src2 = null;
-// Defaults.root2 = null;
-
 Defaults.context = null;
 Defaults.Looker = null;
 Defaults.it = null;
@@ -519,15 +501,14 @@ Iterator.iteration = iteratorIteration;
 Iterator.reiteration = iteratorReiteration;
 Iterator.select = iteratorSelect;
 Iterator.look = iteratorLook;
-Iterator.lookUp = iteratorLookUp;
-Iterator.lookDown = iteratorLookDown;
-// Iterator.whichIterable = onWhichIterable;
+Iterator.visitUp = iteratorVisitUp;
+Iterator.visitDown = iteratorVisitDown;
 Iterator.visitBegin = iteratorVisitBegin;
 Iterator.visitBeginMaybe = iteratorVisitBeginMaybe;
 Iterator.visitEnd = iteratorVisitEnd;
 Iterator.visitEndMaybe = iteratorVisitEndMaybe;
-Iterator.canStartLooking = iteratorCanStartLooking;
-Iterator.canKeepLooking = iteratorCanKeepLooking;
+Iterator.canVisit = iteratorCanVisit;
+Iterator.canAscend = iteratorCanAscend;
 Iterator.path = null;
 Iterator.lastPath = null;
 Iterator.lastSelect = null;
@@ -535,10 +516,8 @@ Iterator.continue = true;
 Iterator.key = null;
 Iterator.error = null;
 Iterator.visited = null;
-// Iterator.visited2 = null; // xxx
 
 _.mapSupplement( Iterator, Defaults );
-
 Object.freeze( Iterator );
 
 //
@@ -551,7 +530,6 @@ Iteration.path = '/';
 Iteration.key = null;
 Iteration.index = null;
 Iteration.src = null;
-// Iteration.src2 = null;
 Iteration.continue = true;
 Iteration.ascending = true;
 Iteration.visitedManyTimes = false;
@@ -569,7 +547,6 @@ let IterationPreserve = Looker.IterationPreserve = Object.create( null );
 IterationPreserve.level = null;
 IterationPreserve.path = null;
 IterationPreserve.src = null;
-// IterationPreserve.src2 = null;
 IterationPreserve.iterationCurrent =  null;
 Object.freeze( IterationPreserve );
 
@@ -602,16 +579,11 @@ function look_pre( routine, args )
   }
   else _.assert( 0,'look expects single options map, 2 or 3 arguments' );
 
-  // if( o.Looker && _.prototypeOf( o.Looker, o ) ) // xxx
-  // {
-  //   debugger; xxx
-  //   return o;
-  // }
-
-  // debugger;
   o.Looker = o.Looker || routine.defaults.Looker;
 
-  // debugger;
+  if( _.boolIs( o.recursive ) )
+  o.recursive = o.recursive ? Infinity : 1;
+
   _.assert( o.Looker.Looker === o.Looker );
   _.assert( _.objectIs( o.Looker ) );
   _.assert( o.looker === undefined );
@@ -620,6 +592,7 @@ function look_pre( routine, args )
   _.assert( arguments.length === 2, 'Expects exactly two arguments' );
   _.assert( o.onUp === null || o.onUp.length === 0 || o.onUp.length === 3, 'onUp should expect exactly three arguments' );
   _.assert( o.onDown === null || o.onDown.length === 0 || o.onDown.length === 3, 'onUp should expect exactly three arguments' );
+  _.assert( _.numberIsInt( o.recursive ), 'Expects integer {- o.recursive -}' );
 
   if( o.it === null || o.it === undefined )
   {
@@ -655,7 +628,7 @@ let look = _.routineFromPreAndBody( look_pre, look_body );
 
 var defaults = look.defaults;
 defaults.own = 0;
-defaults.recursive = 1;
+defaults.recursive = Infinity;
 
 //
 
@@ -663,7 +636,7 @@ let lookOwn = _.routineFromPreAndBody( look_pre, look_body );
 
 var defaults = lookOwn.defaults;
 defaults.own = 1;
-defaults.recursive = 1;
+defaults.recursive = Infinity;
 
 //
 

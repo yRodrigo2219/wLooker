@@ -17,12 +17,29 @@ if( typeof module !== 'undefined' )
 var _global = _global_;
 var _ = _global_.wTools;
 
+/*
+cls && node builder\include\dwtools\abase\l3.test\Looker.test.s && node builder\include\dwtools\abase\l4.test\LookerExtra.test.s && node builder\include\dwtools\abase\l4.test\Replicator.test.s && node builder\include\dwtools\abase\l5.test\Selector.test.s && node builder\include\dwtools\abase\l6.test\SelectorExtra.test.s && node builder\include\dwtools\abase\l6.test\LookerComparator.test.s
+*/
+
 // --
 // tests
 // --
 
 function look( test )
 {
+
+  function handleUp1( e, k, it )
+  {
+    debugger;
+    gotUpPaths.push( it.path );
+    gotUpIndinces.push( it.index );
+  }
+
+  function handleDown1( e, k, it )
+  {
+    gotDownPaths.push( it.path );
+    gotDownIndices.push( it.index );
+  }
 
   var structure1 =
   {
@@ -45,22 +62,15 @@ function look( test )
   var gotUpIndinces = [];
   var gotDownIndices = [];
 
-  function handleUp1( e, k, it )
-  {
-    debugger;
-    gotUpPaths.push( it.path );
-    gotUpIndinces.push( it.index );
-  }
+  var it = _.look( structure1, handleUp1, handleDown1 );
 
-  function handleDown1( e, k, it )
-  {
-    gotDownPaths.push( it.path );
-    gotDownIndices.push( it.index );
-  }
-
-  debugger;
-  _.look( structure1, handleUp1, handleDown1 );
-  debugger;
+  test.case = 'iteration';
+  test.is( _.lookIterationIs( it ) );
+  test.is( _.lookIteratorIs( Object.getPrototypeOf( it ) ) );
+  test.is( _.lookerIs( Object.getPrototypeOf( Object.getPrototypeOf( it ) ) ) );
+  test.is( Object.getPrototypeOf( Object.getPrototypeOf( Object.getPrototypeOf( it ) ) ) === null );
+  test.is( Object.getPrototypeOf( Object.getPrototypeOf( it ) ) === it.Looker );
+  test.is( Object.getPrototypeOf( it ) === it.iterator );
 
   test.case = 'paths on up';
   test.identical( gotUpPaths, expectedUpPaths );
@@ -70,6 +80,145 @@ function look( test )
   test.identical( gotUpIndinces, expectedUpIndinces );
   test.case = 'indices on down';
   test.identical( gotDownIndices, expectedDownIndices );
+
+}
+
+//
+
+function lookRecursive( test )
+{
+
+  function handleUp1( e, k, it )
+  {
+    gotUpPaths.push( it.path );
+  }
+
+  function handleDown1( e, k, it )
+  {
+    gotDownPaths.push( it.path );
+  }
+
+  var structure1 =
+  {
+    a1 :
+    {
+      b1 :
+      {
+        c1 : 'abc',
+        c2 : 'c2',
+      },
+      b2 : 'b2',
+    },
+    a2 : 'a2',
+  }
+
+  /* */
+
+  test.open( 'recursive : 0' );
+
+  var expectedUpPaths = [ '/' ];
+  var expectedDownPaths = [ '/' ];
+  var gotUpPaths = [];
+  var gotDownPaths = [];
+
+  var it = _.look
+  ({
+    src : structure1,
+    onUp : handleUp1,
+    onDown : handleDown1,
+    recursive : 0,
+  });
+
+  test.case = 'iteration';
+  test.is( _.lookIterationIs( it ) );
+
+  test.case = 'paths on up';
+  test.identical( gotUpPaths, expectedUpPaths );
+  test.case = 'paths on down';
+  test.identical( gotDownPaths, expectedDownPaths );
+
+  test.close( 'recursive : 0' );
+
+  /* */
+
+  test.open( 'recursive : 1' );
+
+  var expectedUpPaths = [ '/', '/a1', '/a2' ];
+  var expectedDownPaths = [ '/a1', '/a2', '/' ];
+  var gotUpPaths = [];
+  var gotDownPaths = [];
+
+  var it = _.look
+  ({
+    src : structure1,
+    onUp : handleUp1,
+    onDown : handleDown1,
+    recursive : 1,
+  });
+
+  test.case = 'iteration';
+  test.is( _.lookIterationIs( it ) );
+
+  test.case = 'paths on up';
+  test.identical( gotUpPaths, expectedUpPaths );
+  test.case = 'paths on down';
+  test.identical( gotDownPaths, expectedDownPaths );
+
+  test.close( 'recursive : 1' );
+
+  /* */
+
+  test.open( 'recursive : 2' );
+
+  var expectedUpPaths = [ '/', '/a1', '/a1/b1', '/a1/b2', '/a2' ];
+  var expectedDownPaths = [ '/a1/b1', '/a1/b2', '/a1', '/a2', '/' ];
+  var gotUpPaths = [];
+  var gotDownPaths = [];
+
+  var it = _.look
+  ({
+    src : structure1,
+    onUp : handleUp1,
+    onDown : handleDown1,
+    recursive : 2,
+  });
+
+  test.case = 'iteration';
+  test.is( _.lookIterationIs( it ) );
+
+  test.case = 'paths on up';
+  test.identical( gotUpPaths, expectedUpPaths );
+  test.case = 'paths on down';
+  test.identical( gotDownPaths, expectedDownPaths );
+
+  test.close( 'recursive : 2' );
+
+  /* */
+
+  test.open( 'recursive : Infinity' );
+
+  var expectedUpPaths = [ '/', '/a1', '/a1/b1', '/a1/b1/c1', '/a1/b1/c2', '/a1/b2', '/a2' ];
+  var expectedDownPaths = [ '/a1/b1/c1', '/a1/b1/c2', '/a1/b1', '/a1/b2', '/a1', '/a2', '/' ];
+  var gotUpPaths = [];
+  var gotDownPaths = [];
+
+  var it = _.look
+  ({
+    src : structure1,
+    onUp : handleUp1,
+    onDown : handleDown1,
+    recursive : Infinity,
+  });
+
+  test.case = 'iteration';
+  test.is( _.lookIterationIs( it ) );
+
+  test.case = 'paths on up';
+  test.identical( gotUpPaths, expectedUpPaths );
+  test.case = 'paths on down';
+  test.identical( gotDownPaths, expectedDownPaths );
+
+  test.close( 'recursive : Infinity' );
 
 }
 
@@ -92,6 +241,7 @@ var Self =
   {
 
     look,
+    lookRecursive,
 
   }
 
