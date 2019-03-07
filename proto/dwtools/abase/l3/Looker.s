@@ -49,6 +49,7 @@ function lookerIteratorMake( o )
   Object.assign( iterator, o );
   if( o.iteratorExtension )
   Object.assign( iterator, o.iteratorExtension );
+  Object.preventExtensions( iterator );
 
   delete iterator.it;
 
@@ -77,14 +78,13 @@ function lookerIteratorMake( o )
 // iterator
 // --
 
-function iteratorIterationMakeAct()
+function iteratorIterationBeginAct()
 {
   let it = this;
 
   _.assert( arguments.length === 0 );
   _.assert( it.level >= 0 );
   _.assert( _.objectIs( it.iterator ) );
-  // _.assert( _.objectIs( it.looker ) );
   _.assert( _.objectIs( it.Looker ) );
   _.assert( it.looker === undefined );
   _.assert( _.numberIs( it.level ) && it.level >= 0 );
@@ -92,9 +92,16 @@ function iteratorIterationMakeAct()
 
   let newIt = Object.create( it.iterator );
   Object.assign( newIt, it.Looker.Iteration );
+  if( it.iterator.iterationExtension )
+  Object.assign( newIt, it.iterator.iterationExtension );
   Object.preventExtensions( newIt );
 
   for( let k in it.Looker.IterationPreserve )
+  newIt[ k ] = it[ k ];
+  // if( it.iterationPreserve )
+  // debugger;
+  if( it.iterationPreserve )
+  for( let k in it.iterationPreserve )
   newIt[ k ] = it[ k ];
 
   if( it.iterator !== it )
@@ -105,10 +112,10 @@ function iteratorIterationMakeAct()
 
 //
 
-function iteratorIteration()
+function iteratorIterationBegin()
 {
   let it = this;
-  let newIt = it.iterationAct();
+  let newIt = it.iterationInitAct();
 
   newIt.logicalLevel = it.logicalLevel + 1;
 
@@ -119,10 +126,10 @@ function iteratorIteration()
 
 //
 
-function iteratorReiteration()
+function iteratorIterationReinit()
 {
   let it = this;
-  let newIt = it.iterationAct();
+  let newIt = it.iterationInitAct();
 
   newIt.logicalLevel = it.logicalLevel;
 
@@ -150,9 +157,9 @@ function iteratorSelect( k )
 
   it.path = it.path !== it.upToken ? it.path + it.upToken + k2 : it.path + k2;
   it.iterator.lastPath = it.path;
-  it.iterator.lastSelect = it;
+  it.iterator.lastSelected = it;
   it.key = k;
-  it.index = it.down.hasChildren;
+  it.index = it.down.childrenCounter;
 
   if( it.src )
   it.src = it.src[ k ];
@@ -204,7 +211,7 @@ function iteratorVisitUp() // xxx
   return;
 
   if( it.down )
-  it.down.hasChildren += 1;
+  it.down.childrenCounter += 1;
 
   if( it.iterator.trackingVisits )
   {
@@ -386,6 +393,7 @@ function onAscend( onIteration )
   _.assert( onIteration.length === 0 || onIteration.length === 1 );
   _.assert( !!it.continue );
   _.assert( !!it.iterator.continue );
+  // _.assert( it.src !== undefined );
 
   if( it.iterable === 'array-like' )
   {
@@ -393,7 +401,7 @@ function onAscend( onIteration )
     for( let k = 0 ; k < it.src.length ; k++ )
     {
       // debugger;
-      let eit = it.iteration().select( k )/*.select2( k )*/;
+      let eit = it.iterationInit().select( k )/*.select2( k )*/;
 
       onIteration.call( it, eit );
 
@@ -417,7 +425,7 @@ function onAscend( onIteration )
       continue;
 
       // debugger;
-      let eit = it.iteration().select( k )/*.select2( k )*/;
+      let eit = it.iterationInit().select( k )/*.select2( k )*/;
 
       onIteration.call( it, eit );
 
@@ -479,7 +487,8 @@ Defaults.root = null;
 Defaults.context = null;
 Defaults.Looker = null;
 Defaults.it = null;
-Defaults.iterationCurrent = null;
+Defaults.iterationPreserve = null;
+Defaults.iterationExtension = null;
 Defaults.iteratorExtension = null;
 
 //
@@ -496,9 +505,9 @@ Looker.iterator = lookerIteratorMake;
 let Iterator = Looker.Iterator = Object.create( null );
 
 Iterator.iterator = null;
-Iterator.iterationAct = iteratorIterationMakeAct;
-Iterator.iteration = iteratorIteration;
-Iterator.reiteration = iteratorReiteration;
+Iterator.iterationInitAct = iteratorIterationBeginAct;
+Iterator.iterationInit = iteratorIterationBegin;
+Iterator.iterationReinit = iteratorIterationReinit;
 Iterator.select = iteratorSelect;
 Iterator.look = iteratorLook;
 Iterator.visitUp = iteratorVisitUp;
@@ -511,7 +520,7 @@ Iterator.canVisit = iteratorCanVisit;
 Iterator.canAscend = iteratorCanAscend;
 Iterator.path = null;
 Iterator.lastPath = null;
-Iterator.lastSelect = null;
+Iterator.lastSelected = null;
 Iterator.continue = true;
 Iterator.key = null;
 Iterator.error = null;
@@ -523,7 +532,7 @@ Object.freeze( Iterator );
 //
 
 let Iteration = Looker.Iteration = Object.create( null );
-Iteration.hasChildren = 0;
+Iteration.childrenCounter = 0;
 Iteration.level = 0,
 Iteration.logicalLevel = 0;
 Iteration.path = '/';
@@ -534,7 +543,7 @@ Iteration.continue = true;
 Iteration.ascending = true;
 Iteration.visitedManyTimes = false;
 Iteration._ = null;
-Iteration.iterationCurrent = null;
+// Iteration.iterationPreserve = null;
 Iteration.down = null;
 Iteration.visiting = false;
 Iteration.iterable = null;
@@ -547,7 +556,7 @@ let IterationPreserve = Looker.IterationPreserve = Object.create( null );
 IterationPreserve.level = null;
 IterationPreserve.path = null;
 IterationPreserve.src = null;
-IterationPreserve.iterationCurrent =  null;
+// IterationPreserve.iterationPreserve =  null;
 Object.freeze( IterationPreserve );
 
 //
@@ -584,6 +593,13 @@ function look_pre( routine, args )
   if( _.boolIs( o.recursive ) )
   o.recursive = o.recursive ? Infinity : 1;
 
+  // if( o.iterationPreserve )
+  // debugger;
+  if( o.iterationPreserve )
+  o.iterationExtension = _.mapSupplement( o.iterationExtension, o.iterationPreserve );
+  if( o.iterationPreserve )
+  o.iteratorExtension = _.mapSupplement( o.iteratorExtension, o.iterationPreserve );
+
   _.assert( o.Looker.Looker === o.Looker );
   _.assert( _.objectIs( o.Looker ) );
   _.assert( o.looker === undefined );
@@ -597,7 +613,7 @@ function look_pre( routine, args )
   if( o.it === null || o.it === undefined )
   {
     let iterator = o.Looker.iterator( o );
-    let iteration = iterator.iteration();
+    let iteration = iterator.iterationInit();
     return iteration;
   }
   else
