@@ -11,6 +11,12 @@
  * @file Looker.s.
  */
 
+/**
+ * Collection of light-weight routines to traverse complex data structure.
+ * @namespace Looker
+ * @memberof module:Tools/base/Looker
+ */
+
 if( typeof module !== 'undefined' )
 {
 
@@ -32,6 +38,14 @@ _.assert( !!_realGlobal_ );
 // --
 // looker
 // --
+
+/**
+ * Makes iterator for Looker.
+ *
+ * @param {Object} o - Options map
+ * @function lookerIteratorMake
+ * @memberof module:Tools/base/Looker.Looker
+ */
 
 function lookerIteratorMake( o )
 {
@@ -78,6 +92,11 @@ function lookerIteratorMake( o )
 // iterator
 // --
 
+/**
+ * @function iteratorIterationBeginAct
+ * @memberof module:Tools/base/Looker.Looker
+ */
+
 function iteratorIterationBeginAct()
 {
   let it = this;
@@ -112,6 +131,11 @@ function iteratorIterationBeginAct()
 
 //
 
+/**
+ * @function iteratorIterationBegin
+ * @memberof module:Tools/base/Looker.Looker
+ */
+
 function iteratorIterationBegin()
 {
   let it = this;
@@ -126,6 +150,11 @@ function iteratorIterationBegin()
 
 //
 
+/**
+ * @function iteratorIterationReinit
+ * @memberof module:Tools/base/Looker.Looker
+ */
+
 function iteratorIterationReinit()
 {
   let it = this;
@@ -139,6 +168,11 @@ function iteratorIterationReinit()
 }
 
 //
+
+/**
+ * @function iteratorSelect
+ * @memberof module:Tools/base/Looker.Looker
+ */
 
 function iteratorSelect( k )
 {
@@ -171,6 +205,11 @@ function iteratorSelect( k )
 
 //
 
+/**
+ * @function iteratorLook
+ * @memberof module:Tools/base/Looker.Looker
+ */
+
 function iteratorLook()
 {
   let it = this;
@@ -200,6 +239,11 @@ function iteratorLook()
 }
 
 //
+
+/**
+ * @function iteratorVisitUp
+ * @memberof module:Tools/base/Looker.Looker
+ */
 
 function iteratorVisitUp() // xxx
 {
@@ -238,6 +282,12 @@ function iteratorVisitUp() // xxx
 
 //
 
+/**
+ * @function iteratorVisitDown
+ * @memberof module:Tools/base/Looker.Looker
+ */
+
+
 function iteratorVisitDown()
 {
   let it = this;
@@ -260,6 +310,11 @@ function iteratorVisitDown()
 
 //
 
+/**
+ * @function iteratorVisitBegin
+ * @memberof module:Tools/base/Looker.Looker
+ */
+
 function iteratorVisitBegin()
 {
   let it = this;
@@ -273,6 +328,12 @@ function iteratorVisitBegin()
 
 //
 
+/**
+ * @function iteratorVisitBeginMaybe
+ * @memberof module:Tools/base/Looker.Looker
+ */
+
+
 function iteratorVisitBeginMaybe()
 {
   let it = this;
@@ -283,6 +344,12 @@ function iteratorVisitBeginMaybe()
 }
 
 //
+
+/**
+ * @function iteratorVisitEnd
+ * @memberof module:Tools/base/Looker.Looker
+ */
+
 
 function iteratorVisitEnd()
 {
@@ -298,6 +365,11 @@ function iteratorVisitEnd()
 
 //
 
+/**
+ * @function iteratorVisitEndMaybe
+ * @memberof module:Tools/base/Looker.Looker
+ */
+
 function iteratorVisitEndMaybe()
 {
   let it = this;
@@ -310,6 +382,11 @@ function iteratorVisitEndMaybe()
 }
 
 //
+
+/**
+ * @function iteratorCanVisit
+ * @memberof module:Tools/base/Looker.Looker
+ */
 
 function iteratorCanVisit()
 {
@@ -325,6 +402,11 @@ function iteratorCanVisit()
 }
 
 //
+
+/**
+ * @function iteratorCanAscend
+ * @memberof module:Tools/base/Looker.Looker
+ */
 
 function iteratorCanAscend()
 {
@@ -468,6 +550,33 @@ function srcChanged()
 // relations
 // --
 
+/**
+ * Default options for {@link module:Tools/base/Looker.Looker.look} routine.
+ * @typedef {Object} Defaults
+ * @property {Function} onUp
+ * @property {Function} onDown
+ * @property {Function} onTerminal
+ * @property {Function} onAscend
+ * @property {Function} onIterable
+ * @property {Boolean} own = 0;
+ * @property {Number} recursive = Infinity
+ * @property {Boolean} visitingRoot = 1
+ * @property {Boolean} trackingVisits = 1
+ * @property {String} upToken = '/'
+ * @property {String} path = null
+ * @property {Number} level = 0
+ * @property {Number} logicalLevel = 0
+ * @property {*} src = null
+ * @property {*} root = null
+ * @property {*} context = null
+ * @property {Object} Looker = null
+ * @property {Object} it = null
+ * @property {Boolean} iterationPreserve = null
+ * @property {*} iterationExtension = null
+ * @property {*} iteratorExtension = null
+ * @memberof module:Tools/base/Looker.Looker
+ */
+
 let Defaults = Object.create( null );
 
 Defaults.onUp = onUp;
@@ -495,6 +604,16 @@ Defaults.iteratorExtension = null;
 
 //
 
+/**
+ * @typedef {Object} looker
+ * @property {Object} Looker
+ * @property {Object} Iterator
+ * @property {Object} Iteration
+ * @property {Boolean} IterationPreserve
+ * @property {} iterator
+ * @memberof module:Tools/base/Looker.Looker.Defaults
+ */
+
 let Looker = Defaults.Looker = Object.create( null );
 Looker.Looker = Looker;
 Looker.Iterator = null;
@@ -503,6 +622,32 @@ Looker.IterationPreserve = null;
 Looker.iterator = lookerIteratorMake;
 
 //
+
+/**
+ * @typedef {Object} Iterator
+ * @property {} iterator = null
+ * @property {} iterationInitAct = iteratorIterationBeginAct
+ * @property {} iterationInit = iteratorIterationBegin
+ * @property {} iterationReinit = iteratorIterationReinit
+ * @property {} select = iteratorSelect
+ * @property {} look = iteratorLook
+ * @property {} visitUp = iteratorVisitUp
+ * @property {} visitDown = iteratorVisitDown
+ * @property {} visitBegin = iteratorVisitBegin
+ * @property {} visitBeginMaybe = iteratorVisitBeginMaybe
+ * @property {} visitEnd = iteratorVisitEnd
+ * @property {} visitEndMaybe = iteratorVisitEndMaybe
+ * @property {} canVisit = iteratorCanVisit
+ * @property {} canAscend = iteratorCanAscend
+ * @property {} path = null
+ * @property {} lastPath = null
+ * @property {} lastSelected = null
+ * @property {} continue = true
+ * @property {} key = null
+ * @property {} error = null
+ * @property {} visited = null
+ * @memberof module:Tools/base/Looker.Looker.Defaults.Looker
+ */
 
 let Iterator = Looker.Iterator = Object.create( null );
 
@@ -533,6 +678,26 @@ Object.freeze( Iterator );
 
 //
 
+/**
+ * @typedef {Object} Iteration
+ * @property {} childrenCounter = 0
+ * @property {} level = 0
+ * @property {} logicalLevel = 0
+ * @property {} path = '/'
+ * @property {} key = null
+ * @property {} index = null
+ * @property {} src = null
+ * @property {} continue = true
+ * @property {} ascending = true
+ * @property {} visitedManyTimes = false
+ * @property {} _ = null
+ * @property {} down = null
+ * @property {} visiting = false
+ * @property {} iterable = null
+ * @property {} trackingVisits = 1
+ * @memberof module:Tools/base/Looker.Looker.Defaults.Looker
+ */
+
 let Iteration = Looker.Iteration = Object.create( null );
 Iteration.childrenCounter = 0;
 Iteration.level = 0,
@@ -553,6 +718,14 @@ Iteration.trackingVisits = 1;
 Object.freeze( Iteration );
 
 //
+
+/**
+ * @typedef {Object} IterationPreserve
+ * @property {} level = null
+ * @property {} path = null
+ * @property {} src = null
+ * @memberof module:Tools/base/Looker.Looker.Defaults.Looker
+ */
 
 let IterationPreserve = Looker.IterationPreserve = Object.create( null );
 IterationPreserve.level = null;
@@ -642,6 +815,11 @@ look_body.defaults = Object.create( Defaults );
 
 //
 
+/**
+ * @function look
+ * @memberof module:Tools/base/Looker.Looker
+ */
+
 let look = _.routineFromPreAndBody( look_pre, look_body );
 
 var defaults = look.defaults;
@@ -650,6 +828,11 @@ defaults.recursive = Infinity;
 
 //
 
+/**
+ * @function lookOwn
+ * @memberof module:Tools/base/Looker.Looker
+ */
+
 let lookOwn = _.routineFromPreAndBody( look_pre, look_body );
 
 var defaults = lookOwn.defaults;
@@ -657,6 +840,11 @@ defaults.own = 1;
 defaults.recursive = Infinity;
 
 //
+
+/**
+ * @function lookerIs
+ * @memberof module:Tools/base/Looker.Looker
+ */
 
 function lookerIs( looker )
 {
@@ -668,6 +856,11 @@ function lookerIs( looker )
 }
 
 //
+
+/**
+ * @function lookIteratorIs
+ * @memberof module:Tools/base/Looker.Looker
+ */
 
 function lookIteratorIs( it )
 {
@@ -681,6 +874,11 @@ function lookIteratorIs( it )
 }
 
 //
+
+/**
+ * @function lookIterationIs
+ * @memberof module:Tools/base/Looker.Looker
+ */
 
 function lookIterationIs( it )
 {
