@@ -222,7 +222,7 @@ function iteratorVisitUp() // xxx
   _.assert( it.continue );
 
   if( it.continue )
-  it.iterable = it.onIterable( it.src );
+  it.srcChanged();
 
   _.assert( _.routineIs( it.onUp ) );
   let r = it.onUp.call( it, it.src, it.key, it );
@@ -443,21 +443,23 @@ function onAscend( onIteration )
 
 //
 
-function onIterable( src )
+function srcChanged()
 {
   let it = this;
 
-  if( _.arrayLike( src ) )
+  _.assert( arguments.length === 0 );
+
+  if( _.arrayLike( it.src ) )
   {
-    return 'array-like';
+    it.iterable = 'array-like';
   }
-  else if( _.mapLike( src ) )
+  else if( _.mapLike( it.src ) )
   {
-    return 'map-like';
+    it.iterable = 'map-like';
   }
   else
   {
-    return false;
+    it.iterable = false;
   }
 
 }
@@ -472,7 +474,7 @@ Defaults.onUp = onUp;
 Defaults.onDown = onDown;
 Defaults.onTerminal = onTerminal;
 Defaults.onAscend = onAscend;
-Defaults.onIterable = onIterable;
+Defaults.srcChanged = srcChanged;
 Defaults.own = 0;
 Defaults.recursive = Infinity;
 Defaults.visitingRoot = 1;
