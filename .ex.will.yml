@@ -21,8 +21,8 @@ execution :
 
 path :
 
-  repository : git+https://github.com/Wandalen/wLooker.git
-  bugs : https://github.com/Wandalen/wLooker/issues
+  repository : git+https:///github.com/Wandalen/wLooker.git
+  bugs : https:///github.com/Wandalen/wLooker/issues
 
 step :
 
