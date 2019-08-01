@@ -805,7 +805,7 @@ function look_body( it )
 
   _.assert( arguments.length === 1, 'Expects single argument' );
   _.assert( _.objectIs( it.Looker ) );
-  _.assert( _.prototypeOf( it.Looker, it ) );
+  _.assert( _.isPrototypeOf( it.Looker, it ) );
   _.assert( it.looker === undefined );
 
   return it.look();
@@ -852,7 +852,7 @@ function lookerIs( looker )
   return false;
   if( !looker.Looker )
   return false;
-  return _.prototypeOf( looker, looker.Looker );
+  return _.isPrototypeOf( looker, looker.Looker );
 }
 
 //
