@@ -5,7 +5,7 @@ General information about module <code>Looker</code>.
 
 The module is a collection of light-weight routines to traverse complex data structure. The module `Looker` provides advanced tools for a complete structural analysis of the input data at all levels of nesting. Use it to make easier comparison and operation on several similar data structures.
 
-## Class diagram
+### Class diagram
 
 ![ClassDiagram.png](../../images/ClassDiagram.png)
 
