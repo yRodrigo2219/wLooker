@@ -3,7 +3,7 @@
 'use strict';
 
 /**
- * Collection of light-weight routines to traverse complex data structure. The module takes care of cycles in a data structure( recursions ) and can be used for comparison or operation on several similar data structures. Please see wEqualer which based on the module for comparison.
+ * Collection of light-weight routines to traverse complex data structure. The module takes care of cycles in a data structure( recursions ) and can be used for comparison or operation on several similar data structures, for replication. Several other modules used this to traverse abstract data structures.
   @module Tools/base/Looker
 */
 

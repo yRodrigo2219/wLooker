@@ -3,7 +3,7 @@
 about :
 
   name : "wLooker"
-  description : "Collection of light-weight routines to traverse complex data structure. The module takes care of cycles in a data structure( recursions ) and can be used for comparison or operation on several similar data structures. Please see wEqualer which based on the module for comparison."
+  description : "Collection of light-weight routines to traverse complex data structure. The module takes care of cycles in a data structure( recursions ) and can be used for comparison or operation on several similar data structures, for replication. Several other modules used this to traverse abstract data structures."
   version : "0.3.40"
   enabled : 1
   interpreters :
