@@ -15,3 +15,4 @@ The diagram above displays the connections between classes Looker, [Replicator](
 npm install
 node sample/Sample.s
 ```
+
