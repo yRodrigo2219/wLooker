@@ -65,7 +65,7 @@ function look( test )
   var it = _.look( structure1, handleUp1, handleDown1 );
 
   test.case = 'iteration';
-  test.is( _.lookIterationIs( it ) );
+  test.is( _.Looker.iterationIs( it ) );
   test.is( _.lookIteratorIs( Object.getPrototypeOf( it ) ) );
   test.is( _.lookerIs( Object.getPrototypeOf( Object.getPrototypeOf( it ) ) ) );
   test.is( Object.getPrototypeOf( Object.getPrototypeOf( Object.getPrototypeOf( it ) ) ) === null );
@@ -130,7 +130,7 @@ function lookRecursive( test )
   });
 
   test.case = 'iteration';
-  test.is( _.lookIterationIs( it ) );
+  test.is( _.Looker.iterationIs( it ) );
 
   test.case = 'paths on up';
   test.identical( gotUpPaths, expectedUpPaths );
@@ -157,7 +157,7 @@ function lookRecursive( test )
   });
 
   test.case = 'iteration';
-  test.is( _.lookIterationIs( it ) );
+  test.is( _.Looker.iterationIs( it ) );
 
   test.case = 'paths on up';
   test.identical( gotUpPaths, expectedUpPaths );
@@ -184,7 +184,7 @@ function lookRecursive( test )
   });
 
   test.case = 'iteration';
-  test.is( _.lookIterationIs( it ) );
+  test.is( _.Looker.iterationIs( it ) );
 
   test.case = 'paths on up';
   test.identical( gotUpPaths, expectedUpPaths );
@@ -211,7 +211,7 @@ function lookRecursive( test )
   });
 
   test.case = 'iteration';
-  test.is( _.lookIterationIs( it ) );
+  test.is( _.Looker.iterationIs( it ) );
 
   test.case = 'paths on up';
   test.identical( gotUpPaths, expectedUpPaths );
@@ -219,6 +219,54 @@ function lookRecursive( test )
   test.identical( gotDownPaths, expectedDownPaths );
 
   test.close( 'recursive : Infinity' );
+
+}
+
+//
+
+function testPaths( test )
+{
+
+  let upc = 0;
+  function onUp()
+  {
+    let it = this;
+    let expectedPaths = [ '/', '/a', '/d', '/d/b', '/d/c' ];
+    test.identical( it.path, expectedPaths[ upc ] );
+    upc += 1;
+  }
+  let downc = 0;
+  function onDown()
+  {
+    let it = this;
+    let expectedPaths = [ '/a', '/d/b', '/d/c', '/d', '/' ];
+    test.identical( it.path, expectedPaths[ downc ] );
+    downc += 1;
+  }
+
+  /* */
+
+  var src =
+  {
+    a : 11,
+    d :
+    {
+      b : 13,
+      c : 15,
+    }
+  }
+  var got = _.look
+  ({
+    src : src,
+    upToken : [ '/', './' ],
+    onUp,
+    onDown,
+  });
+  test.identical( got, got );
+  test.identical( upc, 5 );
+  test.identical( downc, 5 );
+
+  /* */
 
 }
 
@@ -242,6 +290,7 @@ var Self =
 
     look,
     lookRecursive,
+    testPaths,
 
   }
 

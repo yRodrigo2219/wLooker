@@ -5,11 +5,11 @@ about:
     Collection of light-weight routines to traverse complex data structure. The
     module takes care of cycles in a data structure( recursions ) and can be
     used for comparison or operation on several similar data structures. Please
-    see wComparator which based on the module for comparison.
+    see wEqualer which based on the module for comparison.
   enabled: 1
   version: 0.3.40
   interpreters: &ref_0
-    - nodejs >= 6.0.0
+    - nodejs >= 8.0.0
     - chrome >= 60.0.0
     - firefox >= 60.0.0
   keywords: &ref_1
@@ -296,7 +296,7 @@ module:
         Collection of light-weight routines to traverse complex data structure.
         The module takes care of cycles in a data structure( recursions ) and
         can be used for comparison or operation on several similar data
-        structures. Please see wComparator which based on the module for
+        structures. Please see wEqualer which based on the module for
         comparison.
       enabled: 1
       version: 0.3.40
