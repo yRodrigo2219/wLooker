@@ -3,7 +3,7 @@
 'use strict';
 
 /**
- * Collection of light-weight routines to traverse complex data structure. The module takes care of cycles in a data structure( recursions ) and can be used for comparison or operation on several similar data structures. Please see wComparator which based on the module for comparison.
+ * Collection of light-weight routines to traverse complex data structure. The module takes care of cycles in a data structure( recursions ) and can be used for comparison or operation on several similar data structures, for replication. Several other modules used this to traverse abstract data structures.
   @module Tools/base/Looker
 */
 
@@ -25,7 +25,6 @@ if( typeof module !== 'undefined' )
 }
 
 let _global = _global_;
-let Self = _global_.wTools;
 let _ = _global_.wTools;
 
 let _ArraySlice = Array.prototype.slice;
@@ -43,17 +42,19 @@ _.assert( !!_realGlobal_ );
  * Makes iterator for Looker.
  *
  * @param {Object} o - Options map
- * @function lookerIteratorMake
+ * @function iteratorInit
  * @memberof module:Tools/base/Looker.Tools( module::Looker )
  */
 
-function lookerIteratorMake( o )
+function iteratorInit( o )
 {
 
   _.assert( arguments.length === 1 );
   _.assert( _.mapIs( o ) );
   _.assert( _.objectIs( this.Iterator ) );
+  _.assert( _.objectIs( this.Iteration ) );
   _.assert( _.objectIs( o.Looker ) );
+  _.assert( o.Looker === this );
   _.assert( o.looker === undefined );
 
   /* */
@@ -74,18 +75,53 @@ function lookerIteratorMake( o )
     iterator.visited = [];
   }
 
+  if( iterator.defaultUpToken === null )
+  iterator.defaultUpToken = _.strsShortest( iterator.upToken );
+
   if( iterator.path === null )
-  iterator.path = iterator.upToken;
+  iterator.path = iterator.defaultUpToken;
   iterator.lastPath = iterator.path;
 
-  Object.preventExtensions( iterator );
-
+  /* important assert, otherwise copying options from iteration could cause problem */
   _.assert( iterator.it === undefined );
-  _.assert( iterator.level !== undefined );
-  _.assert( iterator.path !== undefined );
+  _.assert( _.numberIs( iterator.level ) );
+  _.assert( _.strIs( iterator.defaultUpToken ) );
+  _.assert( _.strIs( iterator.path ) );
   _.assert( _.strIs( iterator.lastPath ) );
 
   return iterator;
+}
+
+//
+
+function iterationIs( it )
+{
+  if( !it )
+  return false;
+  if( !it.Looker )
+  return false;
+  if( !it.iterator )
+  return false;
+  if( it.iterator === it )
+  return false;
+  if( it.constructor !== this.constructor )
+  return false;
+  return true;
+}
+
+//
+
+function iteratorIs( it )
+{
+  if( !it )
+  return false;
+  if( !it.Looker )
+  return false;
+  if( it.iterator !== it )
+  return false;
+  if( it.constructor !== this.constructor )
+  return false;
+  return true;
 }
 
 // --
@@ -93,11 +129,11 @@ function lookerIteratorMake( o )
 // --
 
 /**
- * @function iteratorIterationBeginAct
+ * @function iterationInitAct
  * @memberof module:Tools/base/Looker.Tools( module::Looker )
  */
 
-function iteratorIterationBeginAct()
+function iterationInitAct()
 {
   let it = this;
 
@@ -117,8 +153,7 @@ function iteratorIterationBeginAct()
 
   for( let k in it.Looker.IterationPreserve )
   newIt[ k ] = it[ k ];
-  // if( it.iterationPreserve )
-  // debugger;
+
   if( it.iterationPreserve )
   for( let k in it.iterationPreserve )
   newIt[ k ] = it[ k ];
@@ -132,11 +167,11 @@ function iteratorIterationBeginAct()
 //
 
 /**
- * @function iteratorIterationBegin
+ * @function iterationInit
  * @memberof module:Tools/base/Looker.Tools( module::Looker )
  */
 
-function iteratorIterationBegin()
+function iterationInit()
 {
   let it = this;
   let newIt = it.iterationInitAct();
@@ -151,11 +186,11 @@ function iteratorIterationBegin()
 //
 
 /**
- * @function iteratorIterationReinit
+ * @function iterationReinit
  * @memberof module:Tools/base/Looker.Tools( module::Looker )
  */
 
-function iteratorIterationReinit()
+function iterationReinit()
 {
   let it = this;
   let newIt = it.iterationInitAct();
@@ -170,11 +205,11 @@ function iteratorIterationReinit()
 //
 
 /**
- * @function iteratorSelect
+ * @function select
  * @memberof module:Tools/base/Looker.Tools( module::Looker )
  */
 
-function iteratorSelect( k )
+function select( k )
 {
   let it = this;
 
@@ -184,12 +219,30 @@ function iteratorSelect( k )
 
   it.level = it.level+1;
 
+  let isUp = _.strIs( k ) && _.strHasAny( k, it.upToken );
   let k2 = k;
-
-  if( _.strIs( k2 ) && _.strHas( k2, it.upToken ) )
+  if( isUp )
   k2 = '"' + k2 + '"';
 
-  it.path = it.path !== it.upToken ? it.path + it.upToken + k2 : it.path + k2;
+  // if( it.path === '/d' )
+  // debugger;
+  if( isUp || _.arrayHas( _.arrayAs( it.upToken ), it.path ) )
+  {
+    it.path = it.path + k2;
+  }
+  else
+  {
+    it.path = it.path + it.defaultUpToken + k2;
+  }
+
+  // let k2 = k;
+  // if( _.strIs( k2 ) && _.strHasAny( k2, it.upToken ) )
+  // k2 = '"' + k2 + '"';
+  //
+  // it.path = k !== it.upToken ? it.path + it.defaultUpToken + k2 : it.path + k2;
+  //
+  // console.log( it.path );
+
   it.iterator.lastPath = it.path;
   it.iterator.lastSelected = it;
   it.key = k;
@@ -206,11 +259,11 @@ function iteratorSelect( k )
 //
 
 /**
- * @function iteratorLook
+ * @function look
  * @memberof module:Tools/base/Looker.Tools( module::Looker )
  */
 
-function iteratorLook()
+function look()
 {
   let it = this;
 
@@ -225,32 +278,56 @@ function iteratorLook()
 
   it.ascending = it.canAscend();
   if( it.ascending === false )
-  return it.visitDown();
+  {
+    it.visitDown();
+    return it;
+  }
 
-  it.onAscend( function( eit )
+  it.ascend( function( eit )
   {
     eit.look();
   });
 
-  if( !it.iterable )
-  it.onTerminal();
-
-  return it.visitDown();
+  it.visitDown();
+  return it;
 }
 
 //
 
 /**
- * @function iteratorVisitUp
+ * @function visitUp
  * @memberof module:Tools/base/Looker.Tools( module::Looker )
  */
 
-function iteratorVisitUp() // xxx
+function visitUp()
+{
+  let it = this;
+
+  it.visitUpBegin();
+
+  _.assert( _.routineIs( it.onUp ) );
+  let r = it.onUp.call( it, it.src, it.key, it );
+  _.assert( r === undefined );
+
+  it.visitUpEnd()
+
+}
+
+//
+
+/**
+ * @function visitUpBegin
+ * @memberof module:Tools/base/Looker.Tools( module::Looker )
+ */
+
+
+function visitUpBegin()
 {
   let it = this;
 
   it.ascending = true;
 
+  _.assert( it.visiting );
   if( !it.visiting )
   return;
 
@@ -268,42 +345,55 @@ function iteratorVisitUp() // xxx
   if( it.continue )
   it.srcChanged();
 
-  _.assert( _.routineIs( it.onUp ) );
-  let r = it.onUp.call( it, it.src, it.key, it );
-  _.assert( r === undefined );
+}
+
+//
+
+/**
+ * @function visitUpEnd
+ * @memberof module:Tools/base/Looker.Tools( module::Looker )
+ */
+
+
+function visitUpEnd()
+{
+  let it = this;
 
   if( it.continue === _.dont )
   it.continue = false;
   _.assert( _.boolIs( it.continue ), () => 'Expects boolean it.continue, but got ' + _.strType( it.continue ) );
 
-  it.visitBeginMaybe()
+  it.visitPush();
+
+  // if( it.iterator.trackingVisits && it.trackingVisits )
+  // {
+  //   it.visited.push( it.src );
+  // }
 
 }
 
 //
 
 /**
- * @function iteratorVisitDown
+ * @function visitDown
  * @memberof module:Tools/base/Looker.Tools( module::Looker )
  */
 
-
-function iteratorVisitDown()
+function visitDown()
 {
   let it = this;
 
-  it.ascending = false;
+  it.visitDownBegin();
 
-  if( !it.visiting )
-  return;
-
-  it.visitEndMaybe();
-
+  _.assert( it.visiting );
+  if( it.visiting )
   if( it.onDown )
   {
     let r = it.onDown.call( it, it.src, it.key, it );
     _.assert( r === undefined );
   }
+
+  it.visitDownEnd();
 
   return it;
 }
@@ -311,15 +401,54 @@ function iteratorVisitDown()
 //
 
 /**
- * @function iteratorVisitBegin
+ * @function visitDownBegin
  * @memberof module:Tools/base/Looker.Tools( module::Looker )
  */
 
-function iteratorVisitBegin()
+function visitDownBegin()
 {
   let it = this;
 
-  if( it.iterator.trackingVisits )
+  it.ascending = false;
+
+  _.assert( it.visiting );
+  if( !it.visiting )
+  return;
+
+  if( !it.iterable )
+  it.onTerminal();
+
+  it.visitPop();
+
+  // if( it.iterator.trackingVisits && it.trackingVisits )
+  // {
+  //   _.assert( Object.is( it.visited[ it.visited.length-1 ], it.src ), () => 'Top-most visit does not match ' + it.path );
+  //   it.visited.pop();
+  // }
+  // it.trackingVisits = 0;
+
+}
+
+//
+
+/**
+ * @function visitDownEnd
+ * @memberof module:Tools/base/Looker.Tools( module::Looker )
+ */
+
+function visitDownEnd()
+{
+  let it = this;
+
+}
+
+//
+
+function visitPush()
+{
+  let it = this;
+
+  if( it.iterator.trackingVisits && it.trackingVisits )
   {
     it.visited.push( it.src );
   }
@@ -328,55 +457,15 @@ function iteratorVisitBegin()
 
 //
 
-/**
- * @function iteratorVisitBeginMaybe
- * @memberof module:Tools/base/Looker.Tools( module::Looker )
- */
-
-
-function iteratorVisitBeginMaybe()
+function visitPop()
 {
   let it = this;
 
   if( it.iterator.trackingVisits && it.trackingVisits )
-  it.visitBegin();
-
-}
-
-//
-
-/**
- * @function iteratorVisitEnd
- * @memberof module:Tools/base/Looker.Tools( module::Looker )
- */
-
-
-function iteratorVisitEnd()
-{
-  let it = this;
-
-  if( it.iterator.trackingVisits )
   {
     _.assert( Object.is( it.visited[ it.visited.length-1 ], it.src ), () => 'Top-most visit does not match ' + it.path );
     it.visited.pop();
   }
-
-}
-
-//
-
-/**
- * @function iteratorVisitEndMaybe
- * @memberof module:Tools/base/Looker.Tools( module::Looker )
- */
-
-function iteratorVisitEndMaybe()
-{
-  let it = this;
-
-  if( it.iterator.trackingVisits && it.trackingVisits )
-  it.visitEnd();
-
   it.trackingVisits = 0;
 
 }
@@ -384,11 +473,11 @@ function iteratorVisitEndMaybe()
 //
 
 /**
- * @function iteratorCanVisit
+ * @function canVisit
  * @memberof module:Tools/base/Looker.Tools( module::Looker )
  */
 
-function iteratorCanVisit()
+function canVisit()
 {
   let it = this;
 
@@ -404,11 +493,11 @@ function iteratorCanVisit()
 //
 
 /**
- * @function iteratorCanAscend
+ * @function canAscend
  * @memberof module:Tools/base/Looker.Tools( module::Looker )
  */
 
-function iteratorCanAscend()
+function canAscend()
 {
   let it = this;
 
@@ -425,18 +514,10 @@ function iteratorCanAscend()
   else if( it.visitedManyTimes )
   return false;
 
-  // if( it.levelLimit !== 0 )
-  // if( !( it.level < it.levelLimit ) )
-  // return false;
-
   _.assert( _.numberIs( it.recursive ) );
   if( it.recursive > 0 )
   if( !( it.level < it.recursive ) )
   return false;
-
-  // if( it.levelLimit !== 0 )
-  // if( !( it.level < it.levelLimit ) )
-  // return false;
 
   return true;
 }
@@ -465,7 +546,7 @@ function onTerminal()
 
 //
 
-function onAscend( onIteration )
+function ascend( onIteration )
 {
   let it = this;
 
@@ -475,15 +556,13 @@ function onAscend( onIteration )
   _.assert( onIteration.length === 0 || onIteration.length === 1 );
   _.assert( !!it.continue );
   _.assert( !!it.iterator.continue );
-  // _.assert( it.src !== undefined );
 
   if( it.iterable === 'array-like' )
   {
 
     for( let k = 0 ; k < it.src.length ; k++ )
     {
-      // debugger;
-      let eit = it.iterationInit().select( k )/*.select2( k )*/;
+      let eit = it.iterationInit().select( k );
 
       onIteration.call( it, eit );
 
@@ -506,8 +585,7 @@ function onAscend( onIteration )
       if( !_ObjectHasOwnProperty.call( it.src, k ) )
       continue;
 
-      // debugger;
-      let eit = it.iterationInit().select( k )/*.select2( k )*/;
+      let eit = it.iterationInit().select( k );
 
       onIteration.call( it, eit );
 
@@ -556,7 +634,7 @@ function srcChanged()
  * @property {Function} onUp
  * @property {Function} onDown
  * @property {Function} onTerminal
- * @property {Function} onAscend
+ * @property {Function} ascend
  * @property {Function} onIterable
  * @property {Boolean} own = 0;
  * @property {Number} recursive = Infinity
@@ -582,14 +660,12 @@ let Defaults = Object.create( null );
 Defaults.onUp = onUp;
 Defaults.onDown = onDown;
 Defaults.onTerminal = onTerminal;
-Defaults.onAscend = onAscend;
-Defaults.srcChanged = srcChanged;
 Defaults.own = 0;
 Defaults.recursive = Infinity;
 Defaults.visitingRoot = 1;
 Defaults.trackingVisits = 1;
-// Defaults.levelLimit = 0;
 Defaults.upToken = '/';
+Defaults.defaultUpToken = null;
 Defaults.path = null;
 Defaults.level = 0;
 Defaults.logicalLevel = 0;
@@ -615,30 +691,54 @@ Defaults.iteratorExtension = null;
  */
 
 let Looker = Defaults.Looker = Object.create( null );
+
+Looker.constructor = function Looker(){};
 Looker.Looker = Looker;
 Looker.Iterator = null;
 Looker.Iteration = null;
 Looker.IterationPreserve = null;
-Looker.iterator = lookerIteratorMake;
+Looker.iteratorInit = iteratorInit;
+Looker.iterationIs = iterationIs,
+Looker.iteratorIs = iteratorIs;
+
+Looker.iterationInitAct = iterationInitAct;
+Looker.iterationInit = iterationInit;
+Looker.iterationReinit = iterationReinit;
+Looker.select = select;
+Looker.look = look;
+
+Looker.visitUp = visitUp;
+Looker.visitUpBegin = visitUpBegin;
+Looker.visitUpEnd = visitUpEnd;
+Looker.visitDown = visitDown;
+Looker.visitDownBegin = visitDownBegin;
+Looker.visitDownEnd = visitDownEnd;
+Looker.visitPush = visitPush;
+Looker.visitPop = visitPop;
+
+Looker.canVisit = canVisit;
+Looker.canAscend = canAscend;
+Looker.ascend = ascend;
+Looker.srcChanged = srcChanged;
 
 //
 
 /**
  * @typedef {Object} Iterator
  * @property {} iterator = null
- * @property {} iterationInitAct = iteratorIterationBeginAct
- * @property {} iterationInit = iteratorIterationBegin
- * @property {} iterationReinit = iteratorIterationReinit
- * @property {} select = iteratorSelect
- * @property {} look = iteratorLook
- * @property {} visitUp = iteratorVisitUp
- * @property {} visitDown = iteratorVisitDown
- * @property {} visitBegin = iteratorVisitBegin
- * @property {} visitBeginMaybe = iteratorVisitBeginMaybe
- * @property {} visitEnd = iteratorVisitEnd
- * @property {} visitEndMaybe = iteratorVisitEndMaybe
- * @property {} canVisit = iteratorCanVisit
- * @property {} canAscend = iteratorCanAscend
+ * @property {} iterationInitAct = iterationInitAct
+ * @property {} iterationInit = iterationInit
+ * @property {} iterationReinit = iterationReinit
+ * @property {} select = select
+ * @property {} look = look
+ * @property {} visitUp = visitUp
+ * @property {} visitUpBegin = visitUpBegin
+ * @property {} visitUpEnd = visitUpEnd
+ * @property {} visitDown = visitDown
+ * @property {} visitDownBegin = visitDownBegin
+ * @property {} visitDownEnd = visitDownEnd
+ * @property {} canVisit = canVisit
+ * @property {} canAscend = canAscend
  * @property {} path = null
  * @property {} lastPath = null
  * @property {} lastSelected = null
@@ -652,19 +752,6 @@ Looker.iterator = lookerIteratorMake;
 let Iterator = Looker.Iterator = Object.create( null );
 
 Iterator.iterator = null;
-Iterator.iterationInitAct = iteratorIterationBeginAct;
-Iterator.iterationInit = iteratorIterationBegin;
-Iterator.iterationReinit = iteratorIterationReinit;
-Iterator.select = iteratorSelect;
-Iterator.look = iteratorLook;
-Iterator.visitUp = iteratorVisitUp;
-Iterator.visitDown = iteratorVisitDown;
-Iterator.visitBegin = iteratorVisitBegin;
-Iterator.visitBeginMaybe = iteratorVisitBeginMaybe;
-Iterator.visitEnd = iteratorVisitEnd;
-Iterator.visitEndMaybe = iteratorVisitEndMaybe;
-Iterator.canVisit = iteratorCanVisit;
-Iterator.canAscend = iteratorCanAscend;
 Iterator.path = null;
 Iterator.lastPath = null;
 Iterator.lastSelected = null;
@@ -710,7 +797,6 @@ Iteration.continue = true;
 Iteration.ascending = true;
 Iteration.visitedManyTimes = false;
 Iteration._ = null;
-// Iteration.iterationPreserve = null;
 Iteration.down = null;
 Iteration.visiting = false;
 Iteration.iterable = null;
@@ -731,7 +817,6 @@ let IterationPreserve = Looker.IterationPreserve = Object.create( null );
 IterationPreserve.level = null;
 IterationPreserve.path = null;
 IterationPreserve.src = null;
-// IterationPreserve.iterationPreserve =  null;
 Object.freeze( IterationPreserve );
 
 //
@@ -768,17 +853,15 @@ function look_pre( routine, args )
   if( _.boolIs( o.recursive ) )
   o.recursive = o.recursive ? Infinity : 1;
 
-  // if( o.iterationPreserve )
-  // debugger;
   if( o.iterationPreserve )
   o.iterationExtension = _.mapSupplement( o.iterationExtension, o.iterationPreserve );
   if( o.iterationPreserve )
   o.iteratorExtension = _.mapSupplement( o.iteratorExtension, o.iterationPreserve );
 
-  _.assert( o.Looker.Looker === o.Looker );
-  _.assert( _.objectIs( o.Looker ) );
-  _.assert( o.looker === undefined );
   _.routineOptionsPreservingUndefines( routine, o );
+  _.assert( _.objectIs( o.Looker ), 'Expects options {o.Looker}' );
+  _.assert( o.Looker.Looker === o.Looker );
+  _.assert( o.looker === undefined );
   _.assert( args.length === 1 || args.length === 2 || args.length === 3 );
   _.assert( arguments.length === 2, 'Expects exactly two arguments' );
   _.assert( o.onUp === null || o.onUp.length === 0 || o.onUp.length === 3, 'onUp should expect exactly three arguments' );
@@ -787,12 +870,24 @@ function look_pre( routine, args )
 
   if( o.it === null || o.it === undefined )
   {
-    let iterator = o.Looker.iterator( o );
-    let iteration = iterator.iterationInit();
-    return iteration;
+    let iterator = o.Looker.iteratorInit( o );
+    o.it = iterator.iterationInit();
+    return o.it;
   }
   else
   {
+
+    // debugger; // xxx
+    let iterator = o.it.iterator;
+    for( let k in o )
+    {
+      if( iterator[ k ] === null && o[ k ] !== null && o[ k ] !== undefined )
+      {
+        debugger;
+        iterator[ k ] = o[ k ];
+      }
+    }
+
     return o.it;
   }
 
@@ -802,12 +897,10 @@ function look_pre( routine, args )
 
 function look_body( it )
 {
-
   _.assert( arguments.length === 1, 'Expects single argument' );
   _.assert( _.objectIs( it.Looker ) );
   _.assert( _.isPrototypeOf( it.Looker, it ) );
   _.assert( it.looker === undefined );
-
   return it.look();
 }
 
@@ -820,9 +913,9 @@ look_body.defaults = Object.create( Defaults );
  * @memberof module:Tools/base/Looker.Tools( module::Looker )
  */
 
-let look = _.routineFromPreAndBody( look_pre, look_body );
+let lookAll = _.routineFromPreAndBody( look_pre, look_body );
 
-var defaults = look.defaults;
+var defaults = lookAll.defaults;
 defaults.own = 0;
 defaults.recursive = Infinity;
 
@@ -903,7 +996,8 @@ let Supplement =
   Looker,
   ErrorLooking,
 
-  look,
+  look : lookAll,
+  lookAll,
   lookOwn,
 
   lookerIs,
@@ -912,13 +1006,14 @@ let Supplement =
 
 }
 
-_.mapSupplement( Self, Supplement );
+let Self = Looker;
+_.mapSupplement( _, Supplement );
 
 // --
 // export
 // --
 
 if( typeof module !== 'undefined' && module !== null )
-module[ 'exports' ] = Self;
+module[ 'exports' ] = _;
 
 })();
