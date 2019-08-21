@@ -137,13 +137,13 @@ function iterationInitAct()
 {
   let it = this;
 
-  _.assert( arguments.length === 0 );
-  _.assert( it.level >= 0 );
-  _.assert( _.objectIs( it.iterator ) );
-  _.assert( _.objectIs( it.Looker ) );
-  _.assert( it.looker === undefined );
-  _.assert( _.numberIs( it.level ) && it.level >= 0 );
-  _.assert( _.numberIs( it.logicalLevel ) && it.logicalLevel >= 0 );
+  // _.assert( arguments.length === 0 );
+  // _.assert( it.level >= 0 );
+  // _.assert( _.objectIs( it.iterator ) );
+  // _.assert( _.objectIs( it.Looker ) );
+  // _.assert( it.looker === undefined );
+  // _.assert( _.numberIs( it.level ) && it.level >= 0 );
+  // _.assert( _.numberIs( it.logicalLevel ) && it.logicalLevel >= 0 );
 
   let newIt = Object.create( it.iterator );
   Object.assign( newIt, it.Looker.Iteration );
