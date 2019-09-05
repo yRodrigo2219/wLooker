@@ -48,8 +48,8 @@ function look( test )
     c : [ 1,3 ],
     d : [ 1,{ date : new Date() } ],
     e : function(){},
-    f : new ArrayBuffer( 13 ),
-    g : new Float32Array([ 1,2,3 ]),
+    f : new BufferRaw( 13 ),
+    g : new F32x([ 1,2,3 ]),
   }
 
   var expectedUpPaths = [ '/', '/a', '/b', '/c', '/c/0', '/c/1', '/d', '/d/0', '/d/1', '/d/1/date', '/e', '/f', '/g' ];
