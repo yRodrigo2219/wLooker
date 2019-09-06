@@ -3,7 +3,7 @@
 
 Collection of light-weight routines to traverse complex data structure. The module takes care of cycles in a data structure( recursions ) and can be used for comparison or operation on several similar data structures, for replication. Several other modules used this to traverse abstract data structures.
 
-## Class diagram
+## Relations diagram 
 
 <p><img src="./doc/images/ClassDiagram.png" align="center" width="50%" height="50%"></p>
 
