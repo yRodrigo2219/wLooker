@@ -5,7 +5,7 @@ Collection of light-weight routines to traverse complex data structure. The modu
 
 ## Class diagram
 
-![ClassDiagram.png](./doc/images/ClassDiagram.png)
+<p><img src="./doc/images/ClassDiagram.png" align="center" width="50%" height="50%"></p>
 
 The diagram above displays the connections between classes Looker, [Replicator](https://github.com/Wandalen/wReplicator), [Stringer](https://github.com/Wandalen/wStringer), [Selector](https://github.com/Wandalen/wSelector), [Resolver](https://github.com/Wandalen/wResolver) and [Equaler](https://github.com/Wandalen/wEqualer). The solid lines indicate inheritance between classes, where the arrow indicates the parent class. The dashed lines indicate the use of classes, where the arrow indicates the class used by another. The diagram shows that Looker is the basic class, and it's inherited by others.
 
