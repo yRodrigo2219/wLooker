@@ -224,8 +224,6 @@ function select( k )
   if( isUp )
   k2 = '"' + k2 + '"';
 
-  // if( it.path === '/d' )
-  // debugger;
   if( isUp || _.arrayHas( _.arrayAs( it.upToken ), it.path ) )
   {
     it.path = it.path + k2;
@@ -235,20 +233,16 @@ function select( k )
     it.path = it.path + it.defaultUpToken + k2;
   }
 
-  // let k2 = k;
-  // if( _.strIs( k2 ) && _.strHasAny( k2, it.upToken ) )
-  // k2 = '"' + k2 + '"';
-  //
-  // it.path = k !== it.upToken ? it.path + it.defaultUpToken + k2 : it.path + k2;
-  //
-  // console.log( it.path );
-
   it.iterator.lastPath = it.path;
   it.iterator.lastSelected = it;
   it.key = k;
   it.index = it.down.childrenCounter;
 
-  if( it.src )
+  if( _.setIs( k ) )
+  it.src = [ ... it.src ][ k ];
+  else if( _.hashMapIs( it.src ) )
+  it.src = it.src.get( k );
+  else if( it.src )
   it.src = it.src[ k ];
   else
   it.src = undefined;
@@ -365,11 +359,6 @@ function visitUpEnd()
 
   it.visitPush();
 
-  // if( it.iterator.trackingVisits && it.trackingVisits )
-  // {
-  //   it.visited.push( it.src );
-  // }
-
 }
 
 //
@@ -419,13 +408,6 @@ function visitDownBegin()
   it.onTerminal();
 
   it.visitPop();
-
-  // if( it.iterator.trackingVisits && it.trackingVisits )
-  // {
-  //   _.assert( Object.is( it.visited[ it.visited.length-1 ], it.src ), () => 'Top-most visit does not match ' + it.path );
-  //   it.visited.pop();
-  // }
-  // it.trackingVisits = 0;
 
 }
 
@@ -598,6 +580,45 @@ function ascend( onIteration )
     }
 
   }
+  else if( it.iterable === 'set-like' )
+  {
+
+    for( let [ k, e ] of it.src.entries() )
+    {
+      let eit = it.iterationInit().select( k );
+
+      onIteration.call( it, eit );
+
+      if( !it.continue || it.continue === _.dont )
+      break;
+
+      if( !it.iterator.continue || it.iterator.continue === _.dont )
+      break;
+
+    }
+
+  }
+  else if( it.iterable === 'hash-map-like' )
+  {
+
+    debugger;
+    // for( let k in it.src )
+    for( var k of it.src.keys() )
+    {
+
+      let eit = it.iterationInit().select( k );
+
+      onIteration.call( it, eit );
+
+      if( !it.continue || it.continue === _.dont )
+      break;
+
+      if( !it.iterator.continue || it.iterator.continue === _.dont )
+      break;
+
+    }
+
+  }
 
 }
 
@@ -616,6 +637,17 @@ function srcChanged()
   else if( _.mapLike( it.src ) )
   {
     it.iterable = 'map-like';
+  }
+  else if( _.setLike( it.src ) )
+  {
+    debugger;
+    it.iterable = 'set-like';
+    // it.src = [ ... it.src ];
+  }
+  else if( _.hashMapLike( it.src ) )
+  {
+    debugger;
+    it.iterable = 'hash-map-like';
   }
   else
   {
@@ -877,7 +909,6 @@ function look_pre( routine, args )
   else
   {
 
-    // debugger; // xxx
     let iterator = o.it.iterator;
     for( let k in o )
     {
