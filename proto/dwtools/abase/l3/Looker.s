@@ -167,16 +167,16 @@ function iterationInitAct()
 //
 
 /**
- * @function iterationInit
+ * @function iterationMake
  * @memberof module:Tools/base/Looker.Tools( module::Looker )
  */
 
-function iterationInit()
+function iterationMake()
 {
   let it = this;
   let newIt = it.iterationInitAct();
 
-  newIt.logicalLevel = it.logicalLevel + 1;
+  newIt.logicalLevel = it.logicalLevel + 1; /* xxx : level and logicalLevel should have the same value if no reinit done */
 
   _.assert( arguments.length === 0 );
 
@@ -209,22 +209,47 @@ function iterationReinit()
  * @memberof module:Tools/base/Looker.Tools( module::Looker )
  */
 
-function select( k )
+function select( e, k )
 {
   let it = this;
 
-  _.assert( arguments.length === 1, 'Expects single argument' );
+  // let e;
+  // if( arguments.length === 2 )
+  // {
+  //   e = arguments[ 0 ];
+  //   k = arguments[ 1 ];
+  // }
+
+  // _.assert( arguments.length === 1 || arguments.length === 2, 'Expects single argument' );
+  _.assert( arguments.length === 2, 'Expects two argument' );
   _.assert( it.level >= 0 );
   _.assert( _.objectIs( it.down ) );
 
+  if( e === undefined )
+  {
+    if( _.setIs( it.src ) )
+    e = [ ... it.src ][ k ];
+    else if( _.hashMapIs( it.src ) )
+    e = it.src.get( k );
+    else if( it.src )
+    e = it.src[ k ];
+    else
+    e = undefined;
+  }
+
   it.level = it.level+1;
 
-  let isUp = _.strIs( k ) && _.strHasAny( k, it.upToken );
   let k2 = k;
-  if( isUp )
+  if( k2 === null )
+  k2 = e;
+  if( !_.strIs( k2 ) )
+  k2 = _.strShort( k2 );
+  let hasUp = _.strIs( k2 ) && _.strHasAny( k2, it.upToken );
+  if( hasUp )
   k2 = '"' + k2 + '"';
 
-  if( isUp || _.arrayHas( _.arrayAs( it.upToken ), it.path ) )
+  // if( hasUp || _.arrayHas( _.arrayAs( it.upToken ), it.path ) )
+  if( _.strEnds( it.path, it.upToken ) )
   {
     it.path = it.path + k2;
   }
@@ -237,15 +262,16 @@ function select( k )
   it.iterator.lastSelected = it;
   it.key = k;
   it.index = it.down.childrenCounter;
+  it.src = e;
 
-  if( _.setIs( k ) )
-  it.src = [ ... it.src ][ k ];
-  else if( _.hashMapIs( it.src ) )
-  it.src = it.src.get( k );
-  else if( it.src )
-  it.src = it.src[ k ];
-  else
-  it.src = undefined;
+  // if( _.setIs( k ) )
+  // it.src = [ ... it.src ][ k ];
+  // else if( _.hashMapIs( it.src ) )
+  // it.src = it.src.get( k );
+  // else if( it.src )
+  // it.src = it.src[ k ];
+  // else
+  // it.src = undefined;
 
   return it;
 }
@@ -544,7 +570,7 @@ function ascend( onIteration )
 
     for( let k = 0 ; k < it.src.length ; k++ )
     {
-      let eit = it.iterationInit().select( k );
+      let eit = it.iterationMake().select( it.src[ k ], k );
 
       onIteration.call( it, eit );
 
@@ -567,7 +593,7 @@ function ascend( onIteration )
       if( !_ObjectHasOwnProperty.call( it.src, k ) )
       continue;
 
-      let eit = it.iterationInit().select( k );
+      let eit = it.iterationMake().select( it.src[ k ], k );
 
       onIteration.call( it, eit );
 
@@ -583,9 +609,10 @@ function ascend( onIteration )
   else if( it.iterable === 'set-like' )
   {
 
-    for( let [ k, e ] of it.src.entries() )
+    for( let e of it.src )
     {
-      let eit = it.iterationInit().select( k );
+      let k = e;
+      let eit = it.iterationMake().select( e, k );
 
       onIteration.call( it, eit );
 
@@ -601,12 +628,12 @@ function ascend( onIteration )
   else if( it.iterable === 'hash-map-like' )
   {
 
-    debugger;
+    // debugger;
     // for( let k in it.src )
-    for( var k of it.src.keys() )
+    // for( var k of it.src.keys() )
+    for( var [ k, e ] of it.src )
     {
-
-      let eit = it.iterationInit().select( k );
+      let eit = it.iterationMake().select( e, k );
 
       onIteration.call( it, eit );
 
@@ -640,13 +667,13 @@ function srcChanged()
   }
   else if( _.setLike( it.src ) )
   {
-    debugger;
+    // debugger;
     it.iterable = 'set-like';
     // it.src = [ ... it.src ];
   }
   else if( _.hashMapLike( it.src ) )
   {
-    debugger;
+    // debugger;
     it.iterable = 'hash-map-like';
   }
   else
@@ -734,7 +761,7 @@ Looker.iterationIs = iterationIs,
 Looker.iteratorIs = iteratorIs;
 
 Looker.iterationInitAct = iterationInitAct;
-Looker.iterationInit = iterationInit;
+Looker.iterationMake = iterationMake;
 Looker.iterationReinit = iterationReinit;
 Looker.select = select;
 Looker.look = look;
@@ -759,7 +786,7 @@ Looker.srcChanged = srcChanged;
  * @typedef {Object} Iterator
  * @property {} iterator = null
  * @property {} iterationInitAct = iterationInitAct
- * @property {} iterationInit = iterationInit
+ * @property {} iterationMake = iterationMake
  * @property {} iterationReinit = iterationReinit
  * @property {} select = select
  * @property {} look = look
@@ -903,7 +930,7 @@ function look_pre( routine, args )
   if( o.it === null || o.it === undefined )
   {
     let iterator = o.Looker.iteratorInit( o );
-    o.it = iterator.iterationInit();
+    o.it = iterator.iterationMake();
     return o.it;
   }
   else
