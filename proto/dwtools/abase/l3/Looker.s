@@ -925,7 +925,7 @@ function look_pre( routine, args )
   _.assert( arguments.length === 2, 'Expects exactly two arguments' );
   _.assert( o.onUp === null || o.onUp.length === 0 || o.onUp.length === 3, 'onUp should expect exactly three arguments' );
   _.assert( o.onDown === null || o.onDown.length === 0 || o.onDown.length === 3, 'onUp should expect exactly three arguments' );
-  _.assert( _.numberIsInt( o.recursive ), 'Expects integer {- o.recursive -}' );
+  _.assert( _.intIs( o.recursive ), 'Expects integer {- o.recursive -}' );
 
   if( o.it === null || o.it === undefined )
   {
