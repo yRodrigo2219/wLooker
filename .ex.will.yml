@@ -23,7 +23,7 @@ about :
 path :
 
   repository : git+https:///github.com/Wandalen/wLooker.git
-  remotes :
+  origins :
    - git+https:///github.com/Wandalen/wLooker.git
    - npm:///wlooker
   bugtracker : https:///github.com/Wandalen/wLooker/issues
