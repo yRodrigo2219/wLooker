@@ -2,16 +2,20 @@ format: outwillfile-2.0
 root:
   - wLooker.out
 consistency:
-  ../.ex.will.yml: &ref_0
+  wLooker.out.will.yml: &ref_0
+    hash: 600bd431c7ee9246eb676861ea4080d0
+    size: 38672
+  ../.ex.will.yml: &ref_1
     hash: 97a8834faedad2154c969251df4657b0
     size: 1921
-  ../.im.will.yml: &ref_1
-    hash: 1885fefebaeadeaef10421bf6d9dfb5b
-    size: 4964
+  ../.im.will.yml: &ref_2
+    hash: 1e594f343ce09cd35f6c7261effd37df
+    size: 5038
 module:
   wLooker.out:
     about:
       name: wLooker
+      org: noorg
       description: >-
         Collection of light-weight routines to traverse complex data structure.
         The module takes care of cycles in a data structure( recursions ) and
@@ -20,18 +24,18 @@ module:
         comparison.
       enabled: 1
       version: 0.4.0
-      interpreters: &ref_2
+      interpreters:
         - njs >= 8.0.0
         - chrome >= 60.0.0
         - firefox >= 60.0.0
-      keywords: &ref_3
+      keywords:
         - wTools
       license: MIT
       author: Kostiantyn Wandalen <wanalen@willbe.so>
-      contributors: &ref_4
+      contributors:
         - Kostiantyn Wandalen <wanalen@willbe.so>
       npm.name: wlooker
-      npm.scripts: &ref_5
+      npm.scripts:
         test: wtest .run proto/**
         docgen: wdocgen .build proto
     path:
@@ -62,9 +66,6 @@ module:
       download:
         criterion:
           predefined: 1
-      remote:
-        criterion:
-          predefined: 1
       repository:
         path: 'git+https:///github.com/Wandalen/wLooker.git'
       origins:
@@ -74,15 +75,15 @@ module:
       bugtracker:
         path: 'https:///github.com/Wandalen/wLooker/issues'
       in:
-        criterion:
-          predefined: 0
         path: .
       out:
-        criterion:
-          predefined: 0
         path: .
       temp:
-        path: 'path::out'
+        path:
+          - 'path::out'
+          - ../package-lock.json
+          - ../package.json
+          - ../node_modules
       proto:
         path: ../proto
       export:
@@ -147,11 +148,13 @@ module:
         path: '{path::out.*=}/source/Index.s'
       exported.dir.proto.export:
         criterion:
+          generated: 1
           content: proto
           export: 1
         path: ../proto
       exported.files.proto.export:
         criterion:
+          generated: 1
           content: proto
           export: 1
         path:
@@ -336,6 +339,7 @@ module:
           prefixPath: ../proto
         mandatory: 1
         criterion:
+          generated: 1
           content: proto
           export: 1
       exported.files.proto.export:
@@ -348,6 +352,7 @@ module:
         recursive: 0
         mandatory: 1
         criterion:
+          generated: 1
           content: proto
           export: 1
     step:
@@ -701,6 +706,24 @@ module:
           content: prime
         inherit:
           - files.transpile
+      exported.proto.export:
+        opts:
+          reflector: 'reflector::exported.proto.export*'
+        criterion:
+          generated: 1
+          content: proto
+          export: 1
+        inherit:
+          - files.reflect
+      exported.files.proto.export:
+        opts:
+          reflector: 'reflector::exported.files.proto.export*'
+        criterion:
+          generated: 1
+          content: proto
+          export: 1
+        inherit:
+          - files.reflect
     build:
       proto.export:
         steps:
@@ -789,11 +812,13 @@ module:
           content: proto
           export: 1
     consistency:
-      ../.ex.will.yml: *ref_0
-      ../.im.will.yml: *ref_1
+      wLooker.out.will.yml: *ref_0
+      ../.ex.will.yml: *ref_1
+      ../.im.will.yml: *ref_2
   ../:
     about:
       name: wLooker
+      org: noorg
       description: >-
         Collection of light-weight routines to traverse complex data structure.
         The module takes care of cycles in a data structure( recursions ) and
@@ -802,13 +827,20 @@ module:
         comparison.
       enabled: 1
       version: 0.4.0
-      interpreters: *ref_2
-      keywords: *ref_3
+      interpreters:
+        - njs >= 8.0.0
+        - chrome >= 60.0.0
+        - firefox >= 60.0.0
+      keywords:
+        - wTools
       license: MIT
       author: Kostiantyn Wandalen <wanalen@willbe.so>
-      contributors: *ref_4
+      contributors:
+        - Kostiantyn Wandalen <wanalen@willbe.so>
       npm.name: wlooker
-      npm.scripts: *ref_5
+      npm.scripts:
+        test: wtest .run proto/**
+        docgen: wdocgen .build proto
     path:
       module.willfiles:
         criterion:
@@ -837,9 +869,6 @@ module:
       download:
         criterion:
           predefined: 1
-      remote:
-        criterion:
-          predefined: 1
       repository:
         path: 'git+https:///github.com/Wandalen/wLooker.git'
       origins:
@@ -849,21 +878,21 @@ module:
       bugtracker:
         path: 'https:///github.com/Wandalen/wLooker/issues'
       in:
-        criterion:
-          predefined: 0
         path: .
       out:
-        criterion:
-          predefined: 0
         path: out
       temp:
-        path: 'path::out'
+        path:
+          - 'path::out'
+          - package-lock.json
+          - package.json
+          - node_modules
       proto:
-        path: ./proto
+        path: proto
       export:
         path: '{path::proto}/**'
       doc:
-        path: ./doc
+        path: doc
       out.raw.debug:
         criterion:
           debug: debug
@@ -1487,5 +1516,8 @@ module:
         hash: 97a8834faedad2154c969251df4657b0
         size: 1921
       ../.im.will.yml:
-        hash: 1885fefebaeadeaef10421bf6d9dfb5b
-        size: 4964
+        hash: 1e594f343ce09cd35f6c7261effd37df
+        size: 5038
+      wLooker.out.will.yml:
+        hash: 600bd431c7ee9246eb676861ea4080d0
+        size: 38672

@@ -248,7 +248,7 @@ function select( e, k )
   if( hasUp )
   k2 = '"' + k2 + '"';
 
-  // if( hasUp || _.arrayHas( _.arrayAs( it.upToken ), it.path ) )
+  // if( hasUp || _.longHas( _.arrayAs( it.upToken ), it.path ) )
   if( _.strEnds( it.path, it.upToken ) )
   {
     it.path = it.path + k2;
