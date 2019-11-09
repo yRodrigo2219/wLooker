@@ -12,7 +12,7 @@
   {
     "url" : "https://github.com/Wandalen/wLooker/issues"
   }, 
-  "dependencies" : { "wTools" : "" }, 
-  "devDependencies" : { "wstringer" : "", "wTesting" : "" }, 
+  "dependencies" : { "wTools" : "alpha" }, 
+  "devDependencies" : { "wstringer" : "alpha", "wTesting" : "alpha" }, 
   "keywords" : [ "wTools" ]
 }
