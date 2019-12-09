@@ -26,27 +26,38 @@ if( typeof module !== 'undefined' )
 
 let _global = _global_;
 let _ = _global_.wTools;
-
-let _ArraySlice = Array.prototype.slice;
-let _FunctionBind = Function.prototype.bind;
-let _ObjectToString = Object.prototype.toString;
 let _ObjectHasOwnProperty = Object.hasOwnProperty;
 
 _.assert( !!_realGlobal_ );
 
 // --
-// looker
+// iterator
 // --
+
+function iteratorIs( it )
+{
+  if( !it )
+  return false;
+  if( !it.Looker )
+  return false;
+  if( it.iterator !== it )
+  return false;
+  if( it.constructor !== this.constructor )
+  return false;
+  return true;
+}
+
+//
 
 /**
  * Makes iterator for Looker.
  *
  * @param {Object} o - Options map
- * @function iteratorInit
+ * @function iteratorMake
  * @memberof module:Tools/base/Looker.Tools( module::Looker )
  */
 
-function iteratorInit( o )
+function iteratorMake( o )
 {
 
   _.assert( arguments.length === 1 );
@@ -56,6 +67,7 @@ function iteratorInit( o )
   _.assert( _.objectIs( o.Looker ) );
   _.assert( o.Looker === this );
   _.assert( o.looker === undefined );
+  _.assert( 0 <= o.revisiting && o.revisiting <= 2 );
 
   /* */
 
@@ -70,9 +82,12 @@ function iteratorInit( o )
 
   iterator.iterator = iterator;
 
-  if( iterator.trackingVisits )
+  if( iterator.revisiting < 2 )
   {
-    iterator.visited = [];
+    if( iterator.revisiting === 0 )
+    iterator.visitedContainer = _.containerAdapter.from( new Set );
+    else
+    iterator.visitedContainer = _.containerAdapter.from( new Array );
   }
 
   if( iterator.defaultUpToken === null )
@@ -92,7 +107,9 @@ function iteratorInit( o )
   return iterator;
 }
 
-//
+// --
+// iteration
+// --
 
 function iterationIs( it )
 {
@@ -111,29 +128,50 @@ function iterationIs( it )
 
 //
 
-function iteratorIs( it )
-{
-  if( !it )
-  return false;
-  if( !it.Looker )
-  return false;
-  if( it.iterator !== it )
-  return false;
-  if( it.constructor !== this.constructor )
-  return false;
-  return true;
-}
-
-// --
-// iterator
-// --
-
 /**
- * @function iterationInitAct
+ * @function iterationMake
  * @memberof module:Tools/base/Looker.Tools( module::Looker )
  */
 
-function iterationInitAct()
+function iterationMake()
+{
+  let it = this;
+  let newIt = it.iterationMakeAct();
+
+  newIt.logicalLevel = it.logicalLevel + 1; /* xxx : level and logicalLevel should have the same value if no reinit done */
+
+  _.assert( arguments.length === 0 );
+
+  return newIt;
+}
+
+//
+
+/**
+ * @function iterationRemake
+ * @memberof module:Tools/base/Looker.Tools( module::Looker )
+ */
+
+function iterationRemake()
+{
+  let it = this;
+  let newIt = it.iterationMakeAct();
+
+  newIt.logicalLevel = it.logicalLevel;
+
+  _.assert( arguments.length === 0 );
+
+  return newIt;
+}
+
+//
+
+/**
+ * @function iterationMakeAct
+ * @memberof module:Tools/base/Looker.Tools( module::Looker )
+ */
+
+function iterationMakeAct()
 {
   let it = this;
 
@@ -167,44 +205,6 @@ function iterationInitAct()
 //
 
 /**
- * @function iterationMake
- * @memberof module:Tools/base/Looker.Tools( module::Looker )
- */
-
-function iterationMake()
-{
-  let it = this;
-  let newIt = it.iterationInitAct();
-
-  newIt.logicalLevel = it.logicalLevel + 1; /* xxx : level and logicalLevel should have the same value if no reinit done */
-
-  _.assert( arguments.length === 0 );
-
-  return newIt;
-}
-
-//
-
-/**
- * @function iterationReinit
- * @memberof module:Tools/base/Looker.Tools( module::Looker )
- */
-
-function iterationReinit()
-{
-  let it = this;
-  let newIt = it.iterationInitAct();
-
-  newIt.logicalLevel = it.logicalLevel;
-
-  _.assert( arguments.length === 0 );
-
-  return newIt;
-}
-
-//
-
-/**
  * @function select
  * @memberof module:Tools/base/Looker.Tools( module::Looker )
  */
@@ -213,14 +213,6 @@ function select( e, k )
 {
   let it = this;
 
-  // let e;
-  // if( arguments.length === 2 )
-  // {
-  //   e = arguments[ 0 ];
-  //   k = arguments[ 1 ];
-  // }
-
-  // _.assert( arguments.length === 1 || arguments.length === 2, 'Expects single argument' );
   _.assert( arguments.length === 2, 'Expects two argument' );
   _.assert( it.level >= 0 );
   _.assert( _.objectIs( it.down ) );
@@ -248,7 +240,6 @@ function select( e, k )
   if( hasUp )
   k2 = '"' + k2 + '"';
 
-  // if( hasUp || _.longHas( _.arrayAs( it.upToken ), it.path ) )
   if( _.strEnds( it.path, it.upToken ) )
   {
     it.path = it.path + k2;
@@ -264,19 +255,12 @@ function select( e, k )
   it.index = it.down.childrenCounter;
   it.src = e;
 
-  // if( _.setIs( k ) )
-  // it.src = [ ... it.src ][ k ];
-  // else if( _.hashMapIs( it.src ) )
-  // it.src = it.src.get( k );
-  // else if( it.src )
-  // it.src = it.src[ k ];
-  // else
-  // it.src = undefined;
-
   return it;
 }
 
-//
+// --
+// visit
+// --
 
 /**
  * @function look
@@ -294,19 +278,19 @@ function look()
   if( !it.visiting )
   return it;
 
+  if( _global_.debugger )
+  debugger;
+
   it.visitUp();
 
   it.ascending = it.canAscend();
-  if( it.ascending === false )
+  if( it.ascending )
   {
-    it.visitDown();
-    return it;
+    it.ascend( function( eit )
+    {
+      eit.look();
+    });
   }
-
-  it.ascend( function( eit )
-  {
-    eit.look();
-  });
 
   it.visitDown();
   return it;
@@ -348,17 +332,17 @@ function visitUpBegin()
   it.ascending = true;
 
   _.assert( it.visiting );
-  if( !it.visiting )
-  return;
+  // if( !it.visiting )
+  // return;
 
   if( it.down )
   it.down.childrenCounter += 1;
 
-  if( it.iterator.trackingVisits )
-  {
-    if( it.visited.indexOf( it.src ) !== -1 )
-    it.visitedManyTimes = true;
-  }
+  // if( it.iterator.revisiting < 2 )
+  // {
+  //   if( it.iterator.visitedContainer.indexOf( it.src ) !== -1 )
+  //   it.revisited = true;
+  // }
 
   _.assert( it.continue );
 
@@ -373,7 +357,6 @@ function visitUpBegin()
  * @function visitUpEnd
  * @memberof module:Tools/base/Looker.Tools( module::Looker )
  */
-
 
 function visitUpEnd()
 {
@@ -401,7 +384,7 @@ function visitDown()
   it.visitDownBegin();
 
   _.assert( it.visiting );
-  if( it.visiting )
+  // if( it.visiting )
   if( it.onDown )
   {
     let r = it.onDown.call( it, it.src, it.key, it );
@@ -427,11 +410,11 @@ function visitDownBegin()
   it.ascending = false;
 
   _.assert( it.visiting );
-  if( !it.visiting )
-  return;
+  // if( !it.visiting )
+  // return;
 
-  if( !it.iterable )
-  it.onTerminal();
+  // if( !it.iterable )
+  // it.onTerminal();
 
   it.visitPop();
 
@@ -447,7 +430,6 @@ function visitDownBegin()
 function visitDownEnd()
 {
   let it = this;
-
 }
 
 //
@@ -456,9 +438,11 @@ function visitPush()
 {
   let it = this;
 
-  if( it.iterator.trackingVisits && it.trackingVisits )
+  if( it.iterator.visitedContainer )
+  if( it.visitCounting && it.iterable )
   {
-    it.visited.push( it.src );
+    it.iterator.visitedContainer.push( it.src );
+    it.visitCounting = true;
   }
 
 }
@@ -469,12 +453,19 @@ function visitPop()
 {
   let it = this;
 
-  if( it.iterator.trackingVisits && it.trackingVisits )
+  if( it.iterator.visitedContainer && it.iterator.revisiting !== 0 )
+  if( it.visitCounting && it.iterable )
+  if( _.arrayIs( it.iterator.visitedContainer.original ) || !it.revisited )
   {
-    _.assert( Object.is( it.visited[ it.visited.length-1 ], it.src ), () => 'Top-most visit does not match ' + it.path );
-    it.visited.pop();
+    if( _.arrayIs( it.iterator.visitedContainer.original ) )
+    _.assert
+    (
+      Object.is( it.iterator.visitedContainer.original[ it.iterator.visitedContainer.original.length-1 ], it.src ),
+      () => `Top-most visit ${it.path} does not match ${it.src} <> ${it.iterator.visitedContainer.original[ it.iterator.visitedContainer.original.length-1 ]}`
+    );
+    it.iterator.visitedContainer.pop( it.src );
+    it.visitCounting = false;
   }
-  it.trackingVisits = 0;
 
 }
 
@@ -492,7 +483,7 @@ function canVisit()
   if( !it.recursive && it.down )
   return false
 
-  if( !it.visitingRoot && it.root === it.src )
+  if( !it.withStem && it.root === it.src )
   return false;
 
   return true
@@ -519,7 +510,7 @@ function canAscend()
   return false;
   else if( it.iterator.continue === false )
   return false;
-  else if( it.visitedManyTimes )
+  else if( it.revisited )
   return false;
 
   _.assert( _.numberIs( it.recursive ) );
@@ -528,6 +519,236 @@ function canAscend()
   return false;
 
   return true;
+}
+
+//
+
+function canSibling()
+{
+  let it = this;
+
+  if( !it.continue || it.continue === _.dont )
+  return false;
+
+  if( !it.iterator.continue || it.iterator.continue === _.dont )
+  return false;
+
+  return true;
+}
+
+//
+
+function ascend( onIteration )
+{
+  let it = this;
+
+  _.assert( arguments.length === 1 );
+  _.assert( it.iterable !== null && it.iterable !== undefined );
+  _.assert( _.routineIs( onIteration ) );
+  _.assert( onIteration.length === 0 || onIteration.length === 1 );
+  _.assert( !!it.continue );
+  _.assert( !!it.iterator.continue );
+  _.assert( _.routineIs( it.ascendAct ), `Expects routine {- ascendAct -}` )
+
+  return it.ascendAct( onIteration, it.src );
+  // return it._ascend( onIteration, it.src );
+}
+
+// //
+//
+// function _ascend( onIteration )
+// {
+//   let it = this;
+//
+//   _.assert( arguments.length === 1 );
+//
+//   if( _.arrayLike( it.src ) )
+//   {
+//     it.iterable = 'long-like';
+//     return it._longAscend( onIteration );
+//   }
+//   else if( _.mapLike( it.src ) )
+//   {
+//     it.iterable = 'map-like';
+//     return it._mapAscend( onIteration );
+//   }
+//   else if( _.hashMapLike( it.src ) )
+//   {
+//     it.iterable = 'hash-map-like';
+//     return it._hashMapAscend( onIteration );
+//   }
+//   else if( _.setLike( it.src ) )
+//   {
+//     it.iterable = 'set-like';
+//     return it._setAscend( onIteration );
+//   }
+//   else
+//   {
+//     it.iterable = false;
+//     return it._termianlAscend( onIteration );
+//   }
+//
+// }
+
+//
+
+function _longAscend( onIteration, src )
+{
+  let it = this;
+
+  for( let k = 0 ; k < src.length ; k++ )
+  {
+    let e = src[ k ];
+    let eit = it.iterationMake().select( e, k );
+
+    onIteration.call( it, eit );
+
+    if( !it.canSibling() )
+    break;
+  }
+
+}
+
+//
+
+function _mapAscend( onIteration, src )
+{
+  let it = this;
+
+  for( let k in src )
+  {
+    let e = src[ k ];
+
+    let eit = it.iterationMake().select( e, k );
+
+    onIteration.call( it, eit );
+
+    if( !it.canSibling() )
+    break;
+
+  }
+
+}
+
+//
+
+function _hashMapAscend( onIteration, src )
+{
+  let it = this;
+
+  for( var [ k, e ] of src )
+  {
+    let eit = it.iterationMake().select( e, k );
+
+    onIteration.call( it, eit );
+
+    if( !it.canSibling() )
+    break;
+
+  }
+
+}
+
+//
+
+function _setAscend( onIteration, src )
+{
+  let it = this;
+
+  for( let e of src )
+  {
+    let k = e;
+    let eit = it.iterationMake().select( e, k );
+
+    onIteration.call( it, eit );
+
+    if( !it.canSibling() )
+    break;
+
+  }
+
+}
+
+//
+
+function _termianlAscend( onIteration, src )
+{
+  let it = this;
+
+  it.onTerminal( src );
+
+}
+
+//
+
+function srcChanged()
+{
+  let it = this;
+
+  _.assert( arguments.length === 0 );
+
+  it.iterableEval();
+
+  if( it.onSrcChanged )
+  {
+    it.onSrcChanged();
+  }
+
+  it.revisitedEval();
+
+}
+
+//
+
+function iterableEval()
+{
+  let it = this;
+
+  _.assert( arguments.length === 0 );
+
+  if( _.arrayLike( it.src ) )
+  {
+    it.iterable = 'long-like';
+    it.ascendAct = it._longAscend;
+  }
+  else if( _.mapLike( it.src ) )
+  {
+    it.iterable = 'map-like';
+    it.ascendAct = it._mapAscend;
+  }
+  else if( _.hashMapLike( it.src ) )
+  {
+    it.iterable = 'hash-map-like';
+    it.ascendAct = it._hashMapAscend;
+  }
+  else if( _.setLike( it.src ) )
+  {
+    it.iterable = 'set-like';
+    it.ascendAct = it._setAscend;
+  }
+  else
+  {
+    it.iterable = false;
+    it.ascendAct = it._termianlAscend;
+  }
+
+}
+
+//
+
+function revisitedEval()
+{
+  let it = this;
+
+  _.assert( arguments.length === 0 );
+
+  if( it.iterator.visitedContainer )
+  if( it.iterable )
+  {
+    if( it.iterator.visitedContainer.has( it.src ) )
+    it.revisited = true;
+  }
+
 }
 
 // --
@@ -554,133 +775,8 @@ function onTerminal()
 
 //
 
-function ascend( onIteration )
+function onSrcChanged()
 {
-  let it = this;
-
-  _.assert( arguments.length === 1 );
-  _.assert( it.iterable !== null && it.iterable !== undefined );
-  _.assert( _.routineIs( onIteration ) );
-  _.assert( onIteration.length === 0 || onIteration.length === 1 );
-  _.assert( !!it.continue );
-  _.assert( !!it.iterator.continue );
-
-  if( it.iterable === 'array-like' )
-  {
-
-    for( let k = 0 ; k < it.src.length ; k++ )
-    {
-      let eit = it.iterationMake().select( it.src[ k ], k );
-
-      onIteration.call( it, eit );
-
-      if( !it.continue || it.continue === _.dont )
-      break;
-
-      if( !it.iterator.continue || it.iterator.continue === _.dont )
-      break;
-
-    }
-
-  }
-  else if( it.iterable === 'map-like' )
-  {
-
-    for( let k in it.src )
-    {
-
-      if( it.own )
-      if( !_ObjectHasOwnProperty.call( it.src, k ) )
-      continue;
-
-      let eit = it.iterationMake().select( it.src[ k ], k );
-
-      onIteration.call( it, eit );
-
-      if( !it.continue || it.continue === _.dont )
-      break;
-
-      if( !it.iterator.continue || it.iterator.continue === _.dont )
-      break;
-
-    }
-
-  }
-  else if( it.iterable === 'set-like' )
-  {
-
-    for( let e of it.src )
-    {
-      let k = e;
-      let eit = it.iterationMake().select( e, k );
-
-      onIteration.call( it, eit );
-
-      if( !it.continue || it.continue === _.dont )
-      break;
-
-      if( !it.iterator.continue || it.iterator.continue === _.dont )
-      break;
-
-    }
-
-  }
-  else if( it.iterable === 'hash-map-like' )
-  {
-
-    // debugger;
-    // for( let k in it.src )
-    // for( var k of it.src.keys() )
-    for( var [ k, e ] of it.src )
-    {
-      let eit = it.iterationMake().select( e, k );
-
-      onIteration.call( it, eit );
-
-      if( !it.continue || it.continue === _.dont )
-      break;
-
-      if( !it.iterator.continue || it.iterator.continue === _.dont )
-      break;
-
-    }
-
-  }
-
-}
-
-//
-
-function srcChanged()
-{
-  let it = this;
-
-  _.assert( arguments.length === 0 );
-
-  if( _.arrayLike( it.src ) )
-  {
-    it.iterable = 'array-like';
-  }
-  else if( _.mapLike( it.src ) )
-  {
-    it.iterable = 'map-like';
-  }
-  else if( _.setLike( it.src ) )
-  {
-    // debugger;
-    it.iterable = 'set-like';
-    // it.src = [ ... it.src ];
-  }
-  else if( _.hashMapLike( it.src ) )
-  {
-    // debugger;
-    it.iterable = 'hash-map-like';
-  }
-  else
-  {
-    it.iterable = false;
-  }
-
 }
 
 // --
@@ -697,7 +793,7 @@ function srcChanged()
  * @property {Function} onIterable
  * @property {Boolean} own = 0;
  * @property {Number} recursive = Infinity
- * @property {Boolean} visitingRoot = 1
+ * @property {Boolean} withStem = 1
  * @property {Boolean} trackingVisits = 1
  * @property {String} upToken = '/'
  * @property {String} path = null
@@ -719,10 +815,12 @@ let Defaults = Object.create( null );
 Defaults.onUp = onUp;
 Defaults.onDown = onDown;
 Defaults.onTerminal = onTerminal;
-Defaults.own = 0;
+Defaults.onSrcChanged = onSrcChanged;
+// Defaults.own = 0;
 Defaults.recursive = Infinity;
-Defaults.visitingRoot = 1;
-Defaults.trackingVisits = 1;
+Defaults.withStem = 1;
+// Defaults.trackingVisits = 1; /* xxx */
+Defaults.revisiting = 0;
 Defaults.upToken = '/';
 Defaults.defaultUpToken = null;
 Defaults.path = null;
@@ -756,16 +854,17 @@ Looker.Looker = Looker;
 Looker.Iterator = null;
 Looker.Iteration = null;
 Looker.IterationPreserve = null;
-Looker.iteratorInit = iteratorInit;
-Looker.iterationIs = iterationIs,
+
 Looker.iteratorIs = iteratorIs;
+Looker.iteratorMake = iteratorMake;
 
-Looker.iterationInitAct = iterationInitAct;
+Looker.iterationIs = iterationIs,
 Looker.iterationMake = iterationMake;
-Looker.iterationReinit = iterationReinit;
+Looker.iterationRemake = iterationRemake;
+Looker.iterationMakeAct = iterationMakeAct;
 Looker.select = select;
-Looker.look = look;
 
+Looker.look = look;
 Looker.visitUp = visitUp;
 Looker.visitUpBegin = visitUpBegin;
 Looker.visitUpEnd = visitUpEnd;
@@ -774,20 +873,29 @@ Looker.visitDownBegin = visitDownBegin;
 Looker.visitDownEnd = visitDownEnd;
 Looker.visitPush = visitPush;
 Looker.visitPop = visitPop;
-
 Looker.canVisit = canVisit;
+
 Looker.canAscend = canAscend;
+Looker.canSibling = canSibling;
 Looker.ascend = ascend;
+// Looker._ascend = _ascend;
+Looker._longAscend = _longAscend;
+Looker._mapAscend = _mapAscend;
+Looker._hashMapAscend = _hashMapAscend;
+Looker._setAscend = _setAscend;
+Looker._termianlAscend = _termianlAscend;
 Looker.srcChanged = srcChanged;
+Looker.iterableEval = iterableEval;
+Looker.revisitedEval = revisitedEval;
 
 //
 
 /**
  * @typedef {Object} Iterator
  * @property {} iterator = null
- * @property {} iterationInitAct = iterationInitAct
+ * @property {} iterationMakeAct = iterationMakeAct
  * @property {} iterationMake = iterationMake
- * @property {} iterationReinit = iterationReinit
+ * @property {} iterationRemake = iterationRemake
  * @property {} select = select
  * @property {} look = look
  * @property {} visitUp = visitUp
@@ -804,7 +912,7 @@ Looker.srcChanged = srcChanged;
  * @property {} continue = true
  * @property {} key = null
  * @property {} error = null
- * @property {} visited = null
+ * @property {} visitedContainer = null
  * @memberof module:Tools/base/Looker.Tools( module::Looker ).Defaults.Looker
  */
 
@@ -817,7 +925,7 @@ Iterator.lastSelected = null;
 Iterator.continue = true;
 Iterator.key = null;
 Iterator.error = null;
-Iterator.visited = null;
+Iterator.visitedContainer = null;
 
 _.mapSupplement( Iterator, Defaults );
 Object.freeze( Iterator );
@@ -835,12 +943,12 @@ Object.freeze( Iterator );
  * @property {} src = null
  * @property {} continue = true
  * @property {} ascending = true
- * @property {} visitedManyTimes = false
+ * @property {} revisited = false
  * @property {} _ = null
  * @property {} down = null
  * @property {} visiting = false
  * @property {} iterable = null
- * @property {} trackingVisits = 1
+ * @property {} visitCounted = 1
  * @memberof module:Tools/base/Looker.Tools( module::Looker ).Defaults.Looker
  */
 
@@ -854,12 +962,13 @@ Iteration.index = null;
 Iteration.src = null;
 Iteration.continue = true;
 Iteration.ascending = true;
-Iteration.visitedManyTimes = false;
+Iteration.ascendAct = null;
+Iteration.revisited = false; /* xxx */
 Iteration._ = null;
 Iteration.down = null;
 Iteration.visiting = false;
 Iteration.iterable = null;
-Iteration.trackingVisits = 1;
+Iteration.visitCounting = true;
 Object.freeze( Iteration );
 
 //
@@ -924,12 +1033,15 @@ function look_pre( routine, args )
   _.assert( args.length === 1 || args.length === 2 || args.length === 3 );
   _.assert( arguments.length === 2, 'Expects exactly two arguments' );
   _.assert( o.onUp === null || o.onUp.length === 0 || o.onUp.length === 3, 'onUp should expect exactly three arguments' );
-  _.assert( o.onDown === null || o.onDown.length === 0 || o.onDown.length === 3, 'onUp should expect exactly three arguments' );
+  _.assert( o.onDown === null || o.onDown.length === 0 || o.onDown.length === 3, 'onDown should expect exactly three arguments' );
   _.assert( _.intIs( o.recursive ), 'Expects integer {- o.recursive -}' );
+
+  if( o.Looker === null )
+  o.Looker = Looker;
 
   if( o.it === null || o.it === undefined )
   {
-    let iterator = o.Looker.iteratorInit( o );
+    let iterator = o.Looker.iteratorMake( o );
     o.it = iterator.iterationMake();
     return o.it;
   }
@@ -974,21 +1086,21 @@ look_body.defaults = Object.create( Defaults );
 let lookAll = _.routineFromPreAndBody( look_pre, look_body );
 
 var defaults = lookAll.defaults;
-defaults.own = 0;
+// defaults.own = 0;
 defaults.recursive = Infinity;
 
 //
 
-/**
- * @function lookOwn
- * @memberof module:Tools/base/Looker.Tools( module::Looker )
- */
-
-let lookOwn = _.routineFromPreAndBody( look_pre, look_body );
-
-var defaults = lookOwn.defaults;
-defaults.own = 1;
-defaults.recursive = Infinity;
+// /**
+//  * @function lookOwn
+//  * @memberof module:Tools/base/Looker.Tools( module::Looker )
+//  */
+//
+// let lookOwn = _.routineFromPreAndBody( look_pre, look_body );
+//
+// var defaults = lookOwn.defaults;
+// defaults.own = 1;
+// defaults.recursive = Infinity;
 
 //
 
@@ -1048,7 +1160,7 @@ function lookIterationIs( it )
 // declare
 // --
 
-let Supplement =
+let NamespaceExtension =
 {
 
   Looker,
@@ -1056,7 +1168,7 @@ let Supplement =
 
   look : lookAll,
   lookAll,
-  lookOwn,
+  // lookOwn,
 
   lookerIs,
   lookIteratorIs,
@@ -1065,7 +1177,7 @@ let Supplement =
 }
 
 let Self = Looker;
-_.mapSupplement( _, Supplement );
+_.mapSupplement( _, NamespaceExtension );
 
 // --
 // export

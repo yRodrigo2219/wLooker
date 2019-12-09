@@ -1326,6 +1326,315 @@ function callbacksComplex( test )
 
 } /* end of function callbacksComplex */
 
+//
+
+function revisiting( test )
+{
+  let ups = [];
+  let dws = [];
+
+  let structure =
+  {
+    arr : [ 0, { a : 1, b : null, c : 3 }, 4 ],
+  }
+  structure.arr[ 1 ].b = structure.arr;
+  structure.arr2 = structure.arr;
+
+  /* - */
+
+  test.case = 'revisiting : 0';
+  clean();
+  var expUps =
+  [
+    '/',
+    '/arr',
+    '/arr/0',
+    '/arr/1',
+    '/arr/1/a',
+    '/arr/1/b',
+    '/arr/1/c',
+    '/arr/2',
+    '/arr2'
+  ]
+  var expDws =
+  [
+    '/',
+    '/arr',
+    '/arr/0',
+    '/arr/1',
+    '/arr/1/a',
+    '/arr/1/b',
+    '/arr/1/c',
+    '/arr/2',
+    '/arr2'
+  ]
+  var got = _.look({ src : structure, revisiting : 0, onUp, onDown });
+
+  test.identical( ups, expUps );
+  test.identical( ups, expDws );
+
+  /* - */
+
+  test.case = 'revisiting : 1';
+  clean();
+  var expUps =
+  [
+    '/',
+    '/arr',
+    '/arr/0',
+    '/arr/1',
+    '/arr/1/a',
+    '/arr/1/b',
+    '/arr/1/c',
+    '/arr/2',
+    '/arr2',
+    '/arr2/0',
+    '/arr2/1',
+    '/arr2/1/a',
+    '/arr2/1/b',
+    '/arr2/1/c',
+    '/arr2/2'
+  ]
+  var expDws =
+  [
+    '/',
+    '/arr',
+    '/arr/0',
+    '/arr/1',
+    '/arr/1/a',
+    '/arr/1/b',
+    '/arr/1/c',
+    '/arr/2',
+    '/arr2',
+    '/arr2/0',
+    '/arr2/1',
+    '/arr2/1/a',
+    '/arr2/1/b',
+    '/arr2/1/c',
+    '/arr2/2'
+  ]
+  var got = _.look({ src : structure, revisiting : 1, onUp, onDown });
+
+  test.identical( ups, expUps );
+  test.identical( ups, expDws );
+
+  /* - */
+
+  test.case = 'revisiting : 2';
+  clean();
+  var expUps =
+  [
+    '/',
+    '/arr',
+    '/arr/0',
+    '/arr/1',
+    '/arr/1/a',
+    '/arr/1/b',
+    '/arr/1/c',
+    '/arr/2',
+    '/arr2',
+    '/arr2/0',
+    '/arr2/1',
+    '/arr2/1/a',
+    '/arr2/1/b',
+    '/arr2/1/c',
+    '/arr2/2'
+  ]
+  var expDws =
+  [
+    '/',
+    '/arr',
+    '/arr/0',
+    '/arr/1',
+    '/arr/1/a',
+    '/arr/1/b',
+    '/arr/1/c',
+    '/arr/2',
+    '/arr2',
+    '/arr2/0',
+    '/arr2/1',
+    '/arr2/1/a',
+    '/arr2/1/b',
+    '/arr2/1/c',
+    '/arr2/2'
+  ]
+  var got = _.look({ src : structure, revisiting : 2, onUp : onUp2, onDown });
+  test.identical( ups, expUps );
+  test.identical( ups, expDws );
+
+  /* - */
+
+  function clean()
+  {
+    ups.splice( 0, ups.length );
+    dws.splice( 0, dws.length );
+  }
+
+  function onUp( e, k, it )
+  {
+    ups.push( it.path );
+    logger.log( 'up', it.level, it.path );
+  }
+
+  function onUp2( e, k, it )
+  {
+    ups.push( it.path );
+    logger.log( 'up', it.level, it.path );
+    if( it.level >= 3 )
+    it.continue = false;
+  }
+
+  function onDown( e, k, it )
+  {
+    dws.push( it.path );
+    logger.log( 'down', it.level, it.path );
+  }
+
+}
+
+//
+
+function onSrcChangedElements( test )
+{
+  let ups = [];
+  let dws = [];
+  let upNames = [];
+  let dwNames = [];
+
+  var a1 = new Obj({ name : 'a1' });
+  var a2 = new Obj({ name : 'a2' });
+  var b = new Obj({ name : 'b', elements : [ a1, a2 ] });
+  var c = new Obj({ name : 'c', elements : [ b ] });
+
+  var expUps = [ '/', '/0', '/0/0', '/0/1' ];
+  var expDws = [ '/', '/0', '/0/0', '/0/1' ];
+  var expUpNames = [ 'c', 'b', 'a1', 'a2' ];
+  var expDwNames = [ 'a1', 'a2', 'b', 'c' ];
+
+  var got = _.look({ src : c, onUp, onDown, onSrcChanged });
+  test.identical( ups, expUps );
+  test.identical( ups, expDws );
+  test.identical( upNames, expUpNames );
+  test.identical( dwNames, expDwNames );
+
+  /* - */
+
+  function Obj( o )
+  {
+    this.str = 'str';
+    this.num = 13;
+    Object.assign( this, o );
+  }
+
+  function clean()
+  {
+    ups.splice( 0, ups.length );
+    dws.splice( 0, dws.length );
+  }
+
+  function onUp( e, k, it )
+  {
+    ups.push( it.path );
+    upNames.push( it.src.name );
+    logger.log( 'up', it.level, it.path, it.src ? it.src.name : '' );
+  }
+
+  function onDown( e, k, it )
+  {
+    dws.push( it.path );
+    dwNames.push( it.src.name );
+    logger.log( 'down', it.level, it.path, it.src ? it.src.name : '' );
+  }
+
+  function onSrcChanged()
+  {
+    let it = this;
+    if( !it.iterable )
+    if( it.src instanceof Obj )
+    {
+      if( _.longIs( it.src.elements ) )
+      {
+        it.iterable = 'Obj';
+        it.ascendAct = function objAscend( onIteration, src )
+        {
+          return this._longAscend( onIteration, src.elements );
+        }
+      }
+    }
+  }
+
+}
+
+//
+
+function onUpElements( test )
+{
+  let ups = [];
+  let dws = [];
+  let upNames = [];
+  let dwNames = [];
+
+  var a1 = new Obj({ name : 'a1' });
+  var a2 = new Obj({ name : 'a2' });
+  var b = new Obj({ name : 'b', elements : [ a1, a2 ] });
+  var c = new Obj({ name : 'c', elements : [ b ] });
+
+  var expUps = [ '/', '/0', '/0/0', '/0/1' ];
+  var expDws = [ '/', '/0', '/0/0', '/0/1' ];
+  var expUpNames = [ 'c', 'b', 'a1', 'a2' ];
+  var expDwNames = [ 'a1', 'a2', 'b', 'c' ];
+
+  var got = _.look({ src : c, onUp, onDown });
+  test.identical( ups, expUps );
+  test.identical( ups, expDws );
+  test.identical( upNames, expUpNames );
+  test.identical( dwNames, expDwNames );
+
+  /* - */
+
+  function Obj( o )
+  {
+    this.str = 'str';
+    this.num = 13;
+    Object.assign( this, o );
+  }
+
+  function clean()
+  {
+    ups.splice( 0, ups.length );
+    dws.splice( 0, dws.length );
+  }
+
+  function onUp( e, k, it )
+  {
+    debugger;
+    if( !it.iterable )
+    if( it.src instanceof Obj )
+    {
+      if( _.longIs( it.src.elements ) )
+      {
+        it.iterable = 'Obj';
+        it.ascendAct = function objAscend( onIteration, src )
+        {
+          return this._longAscend( onIteration, src.elements );
+        }
+      }
+    }
+
+    ups.push( it.path );
+    upNames.push( it.src.name );
+    logger.log( 'up', it.level, it.path, it.src ? it.src.name : '' );
+  }
+
+  function onDown( e, k, it )
+  {
+    dws.push( it.path );
+    dwNames.push( it.src.name );
+    logger.log( 'down', it.level, it.path, it.src ? it.src.name : '' );
+  }
+
+}
+
 // --
 // declare
 // --
@@ -1348,6 +1657,10 @@ var Self =
     lookRecursive,
     testPaths,
     callbacksComplex,
+
+    revisiting,
+    onSrcChangedElements,
+    onUpElements,
 
   }
 
