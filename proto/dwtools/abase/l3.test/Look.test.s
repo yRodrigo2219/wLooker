@@ -30,7 +30,6 @@ function look( test )
 
   function handleUp1( e, k, it )
   {
-    debugger;
     gotUpPaths.push( it.path );
     gotUpIndinces.push( it.index );
   }
@@ -63,6 +62,7 @@ function look( test )
   var gotDownIndices = [];
 
   var it = _.look( structure1, handleUp1, handleDown1 );
+  // var it = _.look({ src : structure1, onUp : handleUp1, onDown : handleDown1 });
 
   test.case = 'iteration';
   test.is( _.Looker.iterationIs( it ) );
@@ -1295,9 +1295,7 @@ function callbacksComplex( test )
     '/'
   ]
 
-  debugger;
   var generated = _.diagnosticStructureGenerate({ depth : 1, defaultComplexity : 5, defaultLength : 2 });
-  debugger;
 
   clean();
   _.look({ src : generated.structure, onUp, onDown });
@@ -1315,13 +1313,11 @@ function callbacksComplex( test )
   function onUp( e, k, it )
   {
     ups.push( it.path );
-    debugger;
   }
 
   function onDown( e, k, it )
   {
     dws.push( it.path );
-    debugger;
   }
 
 } /* end of function callbacksComplex */
@@ -1607,7 +1603,6 @@ function onUpElements( test )
 
   function onUp( e, k, it )
   {
-    debugger;
     if( !it.iterable )
     if( it.src instanceof Obj )
     {

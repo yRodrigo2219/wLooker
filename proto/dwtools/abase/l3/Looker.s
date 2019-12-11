@@ -90,6 +90,9 @@ function iteratorMake( o )
     iterator.visitedContainer = _.containerAdapter.from( new Array );
   }
 
+  if( iterator.root === null )
+  iterator.root = iterator.src;
+
   if( iterator.defaultUpToken === null )
   iterator.defaultUpToken = _.strsShortest( iterator.upToken );
 
@@ -277,9 +280,6 @@ function look()
   it.visiting = it.canVisit();
   if( !it.visiting )
   return it;
-
-  if( _global_.debugger )
-  debugger;
 
   it.visitUp();
 
@@ -481,12 +481,12 @@ function canVisit()
   let it = this;
 
   if( !it.recursive && it.down )
-  return false
-
-  if( !it.withStem && it.root === it.src )
   return false;
 
-  return true
+  // if( !it.withStem && it.root === it.src )
+  // return false;
+
+  return true;
 }
 
 //
@@ -793,7 +793,6 @@ function onSrcChanged()
  * @property {Function} onIterable
  * @property {Boolean} own = 0;
  * @property {Number} recursive = Infinity
- * @property {Boolean} withStem = 1
  * @property {Boolean} trackingVisits = 1
  * @property {String} upToken = '/'
  * @property {String} path = null
@@ -818,7 +817,7 @@ Defaults.onTerminal = onTerminal;
 Defaults.onSrcChanged = onSrcChanged;
 // Defaults.own = 0;
 Defaults.recursive = Infinity;
-Defaults.withStem = 1;
+// Defaults.withStem = 1;
 // Defaults.trackingVisits = 1; /* xxx */
 Defaults.revisiting = 0;
 Defaults.upToken = '/';
@@ -1053,7 +1052,6 @@ function look_pre( routine, args )
     {
       if( iterator[ k ] === null && o[ k ] !== null && o[ k ] !== undefined )
       {
-        debugger;
         iterator[ k ] = o[ k ];
       }
     }
