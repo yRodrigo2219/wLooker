@@ -1646,36 +1646,12 @@ function lookOptionRoot( test )
     g : new F32x([ 1,2,3 ]),
   }
 
-  var it = _.look({ src : structure1, onUp : handleUp1, onDown : handleDown1, root : structure1 });
+  var it = _.look({ src : structure1, root : structure1 });
   
   test.case = 'root declared';
   var got = Object.getPrototypeOf( it ).root;
   var expected = structure1;
   test.identical( got, expected );
-
-  function handleUp1( e, k, it )
-  {
-    gotUpPaths1.push( it.path );
-    gotUpIndinces1.push( it.index );
-  }
-
-  function handleDown1( e, k, it )
-  {
-    gotDownPaths1.push( it.path );
-    gotDownIndices1.push( it.index );
-  }
-
-  function handleUp2( e, k, it )
-  {
-    gotUpPaths2.push( it.path );
-    gotUpIndinces2.push( it.index );
-  }
-
-  function handleDown2( e, k, it )
-  {
-    gotDownPaths2.push( it.path );
-    gotDownIndices2.push( it.index );
-  }
 
 }
 
