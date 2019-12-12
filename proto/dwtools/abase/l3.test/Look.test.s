@@ -28,18 +28,6 @@ cls && node builder\include\dwtools\abase\l3.test\Looker.test.s && node builder\
 function look( test )
 {
 
-  function handleUp1( e, k, it )
-  {
-    gotUpPaths.push( it.path );
-    gotUpIndinces.push( it.index );
-  }
-
-  function handleDown1( e, k, it )
-  {
-    gotDownPaths.push( it.path );
-    gotDownIndices.push( it.index );
-  }
-
   var structure1 =
   {
     a : 1,
@@ -81,22 +69,24 @@ function look( test )
   test.case = 'indices on down';
   test.identical( gotDownIndices, expectedDownIndices );
 
+  function handleUp1( e, k, it )
+  {
+    gotUpPaths.push( it.path );
+    gotUpIndinces.push( it.index );
+  }
+
+  function handleDown1( e, k, it )
+  {
+    gotDownPaths.push( it.path );
+    gotDownIndices.push( it.index );
+  }
+
 }
 
 //
 
 function lookRecursive( test )
 {
-
-  function handleUp1( e, k, it )
-  {
-    gotUpPaths.push( it.path );
-  }
-
-  function handleDown1( e, k, it )
-  {
-    gotDownPaths.push( it.path );
-  }
 
   var structure1 =
   {
@@ -219,6 +209,16 @@ function lookRecursive( test )
   test.identical( gotDownPaths, expectedDownPaths );
 
   test.close( 'recursive : Infinity' );
+
+  function handleUp1( e, k, it )
+  {
+    gotUpPaths.push( it.path );
+  }
+
+  function handleDown1( e, k, it )
+  {
+    gotDownPaths.push( it.path );
+  }
 
 }
 
@@ -1630,6 +1630,92 @@ function onUpElements( test )
 
 }
 
+//
+
+function lookOptionRoot( test )
+{
+
+  var structure1 =
+  {
+    a : 1,
+    b : 's',
+    c : [ 1,3 ],
+    d : [ 1,{ date : new Date() } ],
+    e : function(){},
+    f : new BufferRaw( 13 ),
+    g : new F32x([ 1,2,3 ]),
+  }
+
+  var gotUpRoots = [];
+  var gotDownRoots = [];
+  
+  test.case = 'explicit';
+  var it = _.look({ src : structure1, onUp : handleUp1, onDown: handleDown1, root : structure1 });
+  var expectedRoots = [ structure1, structure1, structure1, structure1, structure1, structure1, structure1, structure1, structure1, structure1, structure1, structure1, structure1 ];
+  test.description = 'roots on up';
+  test.identical( gotUpRoots, expectedRoots );
+  test.description = 'roots on down';
+  test.identical( gotDownRoots, expectedRoots );
+  test.description = 'get root';
+  test.identical( it.root, structure1 );
+
+  test.case = 'implicit';
+  clean();
+  var it = _.look({ src : structure1, onUp : handleUp1, onDown: handleDown1 });
+  var expectedRoots = [ structure1, structure1, structure1, structure1, structure1, structure1, structure1, structure1, structure1, structure1, structure1, structure1, structure1 ];
+  test.description = 'roots on up';
+  test.identical( gotUpRoots, expectedRoots );
+  test.description = 'roots on down';
+  test.identical( gotDownRoots, expectedRoots );
+  test.description = 'get root';
+  test.identical( it.root, structure1 );
+
+  test.case = 'node as root';
+  clean();
+  var it = _.look({ src : structure1, onUp : handleUp1, onDown: handleDown1, root : structure1.c });
+  var expectedRoots = [ structure1.c, structure1.c, structure1.c, structure1.c, structure1.c, structure1.c, structure1.c, structure1.c, structure1.c, structure1.c, structure1.c, structure1.c, structure1.c ];
+  test.description = 'roots on up';
+  test.identical( gotUpRoots, expectedRoots );
+  test.description = 'roots on down';
+  test.identical( gotDownRoots, expectedRoots );
+  test.description = 'get root';
+  test.identical( it.root, structure1.c );
+
+  test.case = 'another structure as root';
+  clean();
+  var structure2 =
+  {
+    a : 's',
+    b : 1,
+    c : { d : [ 2 ] }
+  };
+  var it = _.look({ src : structure1, onUp : handleUp1, onDown: handleDown1, root : structure2 });
+  var expectedRoots = [ structure2, structure2, structure2, structure2, structure2, structure2, structure2, structure2, structure2, structure2, structure2, structure2, structure2 ];
+  test.description = 'roots on up';
+  test.identical( gotUpRoots, expectedRoots );
+  test.description = 'roots on down';
+  test.identical( gotDownRoots, expectedRoots );
+  test.description = 'get root';
+  test.identical( it.root, structure2 );
+
+  function clean()
+  {
+    gotUpRoots.splice( 0, gotUpRoots.length );
+    gotDownRoots.splice( 0, gotDownRoots.length );
+  }
+
+  function handleUp1( e, k, it )
+  {
+    gotUpRoots.push( it.root );
+  }
+
+  function handleDown1( e, k, it )
+  {
+    gotDownRoots.push( it.root );
+  }
+
+}
+
 // --
 // declare
 // --
@@ -1656,6 +1742,7 @@ var Self =
     revisiting,
     onSrcChangedElements,
     onUpElements,
+    lookOptionRoot,
 
   }
 
