@@ -1632,7 +1632,7 @@ function onUpElements( test )
 
 //
 
-function rootOption( test )
+function lookOptionRoot( test )
 {
 
   var structure1 =
@@ -1651,60 +1651,8 @@ function rootOption( test )
   var gotUpIndinces1 = [];
   var gotDownIndices1 = [];
 
-  var it = _.look({ src : structure1, onUp : handleUp1, onDown : handleDown1 });
-
-  test.case = 'iteration src, root not declared';
-  test.is( _.Looker.iterationIs( it ) );
-  test.is( _.lookIteratorIs( Object.getPrototypeOf( it ) ) );
-  test.is( _.lookerIs( Object.getPrototypeOf( Object.getPrototypeOf( it ) ) ) );
-  test.is( Object.getPrototypeOf( Object.getPrototypeOf( Object.getPrototypeOf( it ) ) ) === null );
-  test.is( Object.getPrototypeOf( Object.getPrototypeOf( it ) ) === it.Looker );
-  test.is( Object.getPrototypeOf( it ) === it.iterator );
-
-  var gotUpPaths2 = [];
-  var gotDownPaths2 = [];
-  var gotUpIndinces2 = [];
-  var gotDownIndices2 = [];
-
-  var root = Object.getPrototypeOf( it ).root;
-
-  var itRoot = _.look({ src : root, onUp : handleUp2, onDown : handleDown2 });
-
-  test.case = 'iteration root, root not declared';
-  test.is( _.Looker.iterationIs( itRoot ) );
-  test.is( _.lookIteratorIs( Object.getPrototypeOf( itRoot ) ) );
-  test.is( _.lookerIs( Object.getPrototypeOf( Object.getPrototypeOf( itRoot ) ) ) );
-  test.is( Object.getPrototypeOf( Object.getPrototypeOf( Object.getPrototypeOf( itRoot ) ) ) === null );
-  test.is( Object.getPrototypeOf( Object.getPrototypeOf( itRoot ) ) === itRoot.Looker );
-  test.is( Object.getPrototypeOf( itRoot ) === itRoot.iterator );
-
-  test.case = 'root property not declared, paths';
-  test.description = 'paths on up';
-  test.identical( gotUpPaths1, gotUpPaths2 );
-  test.description = 'paths on down';
-  test.identical( gotDownPaths1, gotDownPaths2 );
-
-  test.case = 'root property not declared, indicies';
-  test.description = 'indices on up';
-  test.identical( gotUpIndinces1, gotUpIndinces2 );
-  test.description = 'indices on down';
-  test.identical( gotDownIndices1, gotDownIndices2 );
-
-  var gotUpPaths1 = [];
-  var gotDownPaths1 = [];
-  var gotUpIndinces1 = [];
-  var gotDownIndices1 = [];
-
   var it = _.look({ src : structure1, onUp : handleUp1, onDown : handleDown1, root : structure1 });
 
-  test.case = 'iteration src, root defined';
-  test.is( _.Looker.iterationIs( it ) );
-  test.is( _.lookIteratorIs( Object.getPrototypeOf( it ) ) );
-  test.is( _.lookerIs( Object.getPrototypeOf( Object.getPrototypeOf( it ) ) ) );
-  test.is( Object.getPrototypeOf( Object.getPrototypeOf( Object.getPrototypeOf( it ) ) ) === null );
-  test.is( Object.getPrototypeOf( Object.getPrototypeOf( it ) ) === it.Looker );
-  test.is( Object.getPrototypeOf( it ) === it.iterator );
-
   var gotUpPaths2 = [];
   var gotDownPaths2 = [];
   var gotUpIndinces2 = [];
@@ -1714,21 +1662,11 @@ function rootOption( test )
 
   var itRoot = _.look({ src : root, onUp : handleUp2, onDown : handleDown2 });
 
-  test.case = 'iteration root, root defined';
-  test.is( _.Looker.iterationIs( itRoot ) );
-  test.is( _.lookIteratorIs( Object.getPrototypeOf( itRoot ) ) );
-  test.is( _.lookerIs( Object.getPrototypeOf( Object.getPrototypeOf( itRoot ) ) ) );
-  test.is( Object.getPrototypeOf( Object.getPrototypeOf( Object.getPrototypeOf( itRoot ) ) ) === null );
-  test.is( Object.getPrototypeOf( Object.getPrototypeOf( itRoot ) ) === itRoot.Looker );
-  test.is( Object.getPrototypeOf( itRoot ) === itRoot.iterator );
-
-  test.case = 'root property declared, paths';
+  test.case = 'root property not declared';
   test.description = 'paths on up';
   test.identical( gotUpPaths1, gotUpPaths2 );
   test.description = 'paths on down';
   test.identical( gotDownPaths1, gotDownPaths2 );
-
-  test.case = 'root property declared, indicies';
   test.description = 'indices on up';
   test.identical( gotUpIndinces1, gotUpIndinces2 );
   test.description = 'indices on down';
