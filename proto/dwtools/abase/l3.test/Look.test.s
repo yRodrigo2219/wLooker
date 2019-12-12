@@ -28,18 +28,6 @@ cls && node builder\include\dwtools\abase\l3.test\Looker.test.s && node builder\
 function look( test )
 {
 
-  function handleUp1( e, k, it )
-  {
-    gotUpPaths.push( it.path );
-    gotUpIndinces.push( it.index );
-  }
-
-  function handleDown1( e, k, it )
-  {
-    gotDownPaths.push( it.path );
-    gotDownIndices.push( it.index );
-  }
-
   var structure1 =
   {
     a : 1,
@@ -81,22 +69,24 @@ function look( test )
   test.case = 'indices on down';
   test.identical( gotDownIndices, expectedDownIndices );
 
+  function handleUp1( e, k, it )
+  {
+    gotUpPaths.push( it.path );
+    gotUpIndinces.push( it.index );
+  }
+
+  function handleDown1( e, k, it )
+  {
+    gotDownPaths.push( it.path );
+    gotDownIndices.push( it.index );
+  }
+
 }
 
 //
 
 function lookRecursive( test )
 {
-
-  function handleUp1( e, k, it )
-  {
-    gotUpPaths.push( it.path );
-  }
-
-  function handleDown1( e, k, it )
-  {
-    gotDownPaths.push( it.path );
-  }
 
   var structure1 =
   {
@@ -219,6 +209,16 @@ function lookRecursive( test )
   test.identical( gotDownPaths, expectedDownPaths );
 
   test.close( 'recursive : Infinity' );
+
+  function handleUp1( e, k, it )
+  {
+    gotUpPaths.push( it.path );
+  }
+
+  function handleDown1( e, k, it )
+  {
+    gotDownPaths.push( it.path );
+  }
 
 }
 
@@ -1635,32 +1635,6 @@ function onUpElements( test )
 function rootOption( test )
 {
 
-  function handleUp2( e, k, it )
-  {
-    gotUpPaths2.push( it.path );
-    gotUpIndinces2.push( it.index );
-  }
-
-  function handleDown2( e, k, it )
-  {
-    gotDownPaths2.push( it.path );
-    gotDownIndices2.push( it.index );
-  }
-
-  function handleUp1( e, k, it )
-  {
-    gotUpPaths1.push( it.path );
-    gotUpIndinces1.push( it.index );
-    root = it.root;
-  }
-
-  function handleDown1( e, k, it )
-  {
-    gotDownPaths1.push( it.path );
-    gotDownIndices1.push( it.index );
-    root = it.root;
-  }
-
   var structure1 =
   {
     a : 1,
@@ -1677,26 +1651,9 @@ function rootOption( test )
   var gotUpIndinces1 = [];
   var gotDownIndices1 = [];
 
-  var gotUpPaths2 = [];
-  var gotDownPaths2 = [];
-  var gotUpIndinces2 = [];
-  var gotDownIndices2 = [];
-  
-  var root;
+  var it = _.look({ src : structure1, onUp : handleUp1, onDown : handleDown1 });
 
-  var it = _.look({
-    src : structure1,
-    onUp : handleUp1, 
-    onDown : handleDown1
-  });
-  
-  var itRoot = _.look({
-    src : root,
-    onUp : handleUp2,
-    onDown : handleDown2
-  });
-
-  test.case = 'iteration src';
+  test.case = 'iteration src, root not declared';
   test.is( _.Looker.iterationIs( it ) );
   test.is( _.lookIteratorIs( Object.getPrototypeOf( it ) ) );
   test.is( _.lookerIs( Object.getPrototypeOf( Object.getPrototypeOf( it ) ) ) );
@@ -1704,7 +1661,16 @@ function rootOption( test )
   test.is( Object.getPrototypeOf( Object.getPrototypeOf( it ) ) === it.Looker );
   test.is( Object.getPrototypeOf( it ) === it.iterator );
 
-  test.case = 'iteration root';
+  var gotUpPaths2 = [];
+  var gotDownPaths2 = [];
+  var gotUpIndinces2 = [];
+  var gotDownIndices2 = [];
+
+  var root = Object.getPrototypeOf( it ).root;
+
+  var itRoot = _.look({ src : root, onUp : handleUp2, onDown : handleDown2 });
+
+  test.case = 'iteration root, root not declared';
   test.is( _.Looker.iterationIs( itRoot ) );
   test.is( _.lookIteratorIs( Object.getPrototypeOf( itRoot ) ) );
   test.is( _.lookerIs( Object.getPrototypeOf( Object.getPrototypeOf( itRoot ) ) ) );
@@ -1712,13 +1678,16 @@ function rootOption( test )
   test.is( Object.getPrototypeOf( Object.getPrototypeOf( itRoot ) ) === itRoot.Looker );
   test.is( Object.getPrototypeOf( itRoot ) === itRoot.iterator );
 
-  test.case = 'paths on up';
+  test.case = 'root property not declared, paths';
+  test.description = 'paths on up';
   test.identical( gotUpPaths1, gotUpPaths2 );
-  test.case = 'paths on down';
+  test.description = 'paths on down';
   test.identical( gotDownPaths1, gotDownPaths2 );
-  test.case = 'indices on up';
-  test.identical( gotUpIndinces1, gotUpIndinces1 );
-  test.case = 'indices on down';
+
+  test.case = 'root property not declared, indicies';
+  test.description = 'indices on up';
+  test.identical( gotUpIndinces1, gotUpIndinces2 );
+  test.description = 'indices on down';
   test.identical( gotDownIndices1, gotDownIndices2 );
 
   var gotUpPaths1 = [];
@@ -1726,25 +1695,7 @@ function rootOption( test )
   var gotUpIndinces1 = [];
   var gotDownIndices1 = [];
 
-  var gotUpPaths2 = [];
-  var gotDownPaths2 = [];
-  var gotUpIndinces2 = [];
-  var gotDownIndices2 = [];
-  
-  var root;
-
-  var it = _.look({
-    src : structure1,
-    onUp : handleUp1, 
-    onDown : handleDown1,
-    root : structure1
-  });
-  
-  var itRoot = _.look({
-    src : root,
-    onUp : handleUp2,
-    onDown : handleDown2
-  });
+  var it = _.look({ src : structure1, onUp : handleUp1, onDown : handleDown1, root : structure1 });
 
   test.case = 'iteration src, root defined';
   test.is( _.Looker.iterationIs( it ) );
@@ -1754,6 +1705,15 @@ function rootOption( test )
   test.is( Object.getPrototypeOf( Object.getPrototypeOf( it ) ) === it.Looker );
   test.is( Object.getPrototypeOf( it ) === it.iterator );
 
+  var gotUpPaths2 = [];
+  var gotDownPaths2 = [];
+  var gotUpIndinces2 = [];
+  var gotDownIndices2 = [];
+
+  var root = Object.getPrototypeOf( it ).root;
+
+  var itRoot = _.look({ src : root, onUp : handleUp2, onDown : handleDown2 });
+
   test.case = 'iteration root, root defined';
   test.is( _.Looker.iterationIs( itRoot ) );
   test.is( _.lookIteratorIs( Object.getPrototypeOf( itRoot ) ) );
@@ -1762,14 +1722,41 @@ function rootOption( test )
   test.is( Object.getPrototypeOf( Object.getPrototypeOf( itRoot ) ) === itRoot.Looker );
   test.is( Object.getPrototypeOf( itRoot ) === itRoot.iterator );
 
-  test.case = 'paths on up, root defined';
+  test.case = 'root property declared, paths';
+  test.description = 'paths on up';
   test.identical( gotUpPaths1, gotUpPaths2 );
-  test.case = 'paths on down, root defined';
+  test.description = 'paths on down';
   test.identical( gotDownPaths1, gotDownPaths2 );
-  test.case = 'indices on up, root defined';
-  test.identical( gotUpIndinces1, gotUpIndinces1 );
-  test.case = 'indices on down, root defined';
+
+  test.case = 'root property declared, indicies';
+  test.description = 'indices on up';
+  test.identical( gotUpIndinces1, gotUpIndinces2 );
+  test.description = 'indices on down';
   test.identical( gotDownIndices1, gotDownIndices2 );
+
+  function handleUp1( e, k, it )
+  {
+    gotUpPaths1.push( it.path );
+    gotUpIndinces1.push( it.index );
+  }
+
+  function handleDown1( e, k, it )
+  {
+    gotDownPaths1.push( it.path );
+    gotDownIndices1.push( it.index );
+  }
+
+  function handleUp2( e, k, it )
+  {
+    gotUpPaths2.push( it.path );
+    gotUpIndinces2.push( it.index );
+  }
+
+  function handleDown2( e, k, it )
+  {
+    gotDownPaths2.push( it.path );
+    gotDownIndices2.push( it.index );
+  }
 
 }
 
