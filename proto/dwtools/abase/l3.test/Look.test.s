@@ -1716,7 +1716,7 @@ var Self =
   tests :
   {
 
-    rootOption,
+    lookOptionRoot,
     look,
     lookRecursive,
     testPaths,
