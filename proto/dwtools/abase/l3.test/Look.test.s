@@ -1646,17 +1646,55 @@ function lookOptionRoot( test )
     g : new F32x([ 1,2,3 ]),
   }
 
-  var expectedRoots = [ structure1, structure1, structure1, structure1, structure1, structure1, structure1, structure1, structure1, structure1, structure1, structure1, structure1 ];
-
   var gotUpRoots = [];
   var gotDownRoots = [];
   
-  test.case = 'root declared';
+  test.case = 'explicit';
   var it = _.look({ src : structure1, onUp : handleUp1, onDown: handleDown1, root : structure1 });
+  var expectedRoots = [ structure1, structure1, structure1, structure1, structure1, structure1, structure1, structure1, structure1, structure1, structure1, structure1, structure1 ];
   test.description = 'roots on up';
   test.identical( gotUpRoots, expectedRoots );
   test.description = 'roots on down';
   test.identical( gotDownRoots, expectedRoots );
+
+  test.case = 'implicit';
+  clean();
+  var it = _.look({ src : structure1, onUp : handleUp1, onDown: handleDown1 });
+  var expectedRoots = [ structure1, structure1, structure1, structure1, structure1, structure1, structure1, structure1, structure1, structure1, structure1, structure1, structure1 ];
+  test.description = 'roots on up';
+  test.identical( gotUpRoots, expectedRoots );
+  test.description = 'roots on down';
+  test.identical( gotDownRoots, expectedRoots );
+
+  test.case = 'node as root';
+  clean();
+  var it = _.look({ src : structure1, onUp : handleUp1, onDown: handleDown1, root : structure1.c });
+  var expectedRoots = [ structure1.c, structure1.c, structure1.c, structure1.c, structure1.c, structure1.c, structure1.c, structure1.c, structure1.c, structure1.c, structure1.c, structure1.c, structure1.c ];
+  test.description = 'roots on up';
+  test.identical( gotUpRoots, expectedRoots );
+  test.description = 'roots on down';
+  test.identical( gotDownRoots, expectedRoots );
+
+  test.case = 'second structure as root';
+  clean();
+  var structure2 =
+  {
+    a : 's',
+    d : 1
+  }
+  var it = _.look({ src : structure1, onUp : handleUp1, onDown: handleDown1, root : structure2 });
+  var expectedRoots = [ structure2, structure2, structure2, structure2, structure2, structure2, structure2, structure2, structure2, structure2, structure2, structure2, structure2 ];
+  test.description = 'roots on up';
+  test.identical( gotUpRoots, expectedRoots );
+  test.description = 'roots on down';
+  test.identical( gotDownRoots, expectedRoots );
+  
+
+  function clean()
+  {
+    gotUpRoots.splice( 0, gotUpRoots.length );
+    gotDownRoots.splice( 0, gotDownRoots.length );
+  }
 
   function handleUp1( e, k, it )
   {
