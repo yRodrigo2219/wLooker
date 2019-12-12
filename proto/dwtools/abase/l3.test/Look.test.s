@@ -1646,12 +1646,27 @@ function lookOptionRoot( test )
     g : new F32x([ 1,2,3 ]),
   }
 
-  var it = _.look({ src : structure1, root : structure1 });
+  var expectedRoots = [ structure1, structure1, structure1, structure1, structure1, structure1, structure1, structure1, structure1, structure1, structure1, structure1, structure1 ];
+
+  var gotUpRoots = [];
+  var gotDownRoots = [];
   
   test.case = 'root declared';
-  var got = Object.getPrototypeOf( it ).root;
-  var expected = structure1;
-  test.identical( got, expected );
+  var it = _.look({ src : structure1, onUp : handleUp1, onDown: handleDown1, root : structure1 });
+  test.description = 'roots on up';
+  test.identical( gotUpRoots, expectedRoots );
+  test.description = 'roots on down';
+  test.identical( gotDownRoots, expectedRoots );
+
+  function handleUp1( e, k, it )
+  {
+    gotUpRoots.push( it.root );
+  }
+
+  function handleDown1( e, k, it )
+  {
+    gotDownRoots.push( it.root );
+  }
 
 }
 
