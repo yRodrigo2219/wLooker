@@ -1646,31 +1646,12 @@ function lookOptionRoot( test )
     g : new F32x([ 1,2,3 ]),
   }
 
-  var gotUpPaths1 = [];
-  var gotDownPaths1 = [];
-  var gotUpIndinces1 = [];
-  var gotDownIndices1 = [];
-
   var it = _.look({ src : structure1, onUp : handleUp1, onDown : handleDown1, root : structure1 });
-
-  var gotUpPaths2 = [];
-  var gotDownPaths2 = [];
-  var gotUpIndinces2 = [];
-  var gotDownIndices2 = [];
-
-  var root = Object.getPrototypeOf( it ).root;
-
-  var itRoot = _.look({ src : root, onUp : handleUp2, onDown : handleDown2 });
-
-  test.case = 'root property not declared';
-  test.description = 'paths on up';
-  test.identical( gotUpPaths1, gotUpPaths2 );
-  test.description = 'paths on down';
-  test.identical( gotDownPaths1, gotDownPaths2 );
-  test.description = 'indices on up';
-  test.identical( gotUpIndinces1, gotUpIndinces2 );
-  test.description = 'indices on down';
-  test.identical( gotDownIndices1, gotDownIndices2 );
+  
+  test.case = 'root declared';
+  var got = Object.getPrototypeOf( it ).root;
+  var expected = structure1;
+  test.identical( got, expected );
 
   function handleUp1( e, k, it )
   {
