@@ -1718,10 +1718,15 @@ function lookOptionRoot( test )
 
 //
 
-/* Mesurement report:
-  When executing 10 times
-    The current implementation of _.look took 39.959s on Njs v13.3.0
-    _.look with the fast option took 41.349s on Njs v13.3.0
+/*
+  Total time, running 10 times.
+
+  | Interpreter  | Current | Fast  |
+  |   v13.3.0    | 40.413s |   *   |
+  |   v12.7.0    | 39.770s |   *   |
+  |   v11.3.0    | 98.951s |   *   |
+  |   v10.16.0   | 99.942s |   *   |
+
 */
 
 function lookVelocityComparator( test )
@@ -1735,10 +1740,12 @@ function lookVelocityComparator( test )
   var it = _.look({ src : structure });
   console.log( `The current implementation of _.look took ${_.time.spent( time )} on Njs ${process.version}`  );
 
+  /* not implemented, yet
   var time = _.time.now();
   for( let i = times ; i > 0 ; i-- )
   var it = _.look({ src : structure, fast : 1 });
   console.log( `_.look with the fast option took ${_.time.spent( time )} on Njs ${process.version}`  );
+  */
 
   // Being green :)
   test.identical( '?', '?' );
