@@ -1718,21 +1718,27 @@ function lookOptionRoot( test )
 
 //
 
+/* Mesurement report:
+  When executing 10 times
+    The current implementation of _.look took 39.959s on Njs v13.3.0
+    _.look with the fast option took 41.349s on Njs v13.3.0
+*/
+
 function lookVelocityComparator( test )
 {
   var structure = _.diagnosticStructureGenerate({ depth : 6 });
   structure = structure.structure;
-  var times = 1;
+  var times = 10;
 
   var time = _.time.now();
   for( let i = times ; i > 0 ; i-- )
   var it = _.look({ src : structure });
-  console.log( `The current implementation of _.look took ${_.time.spent( time )}`  );
+  console.log( `The current implementation of _.look took ${_.time.spent( time )} on Njs ${process.version}`  );
 
   var time = _.time.now();
   for( let i = times ; i > 0 ; i-- )
   var it = _.look({ src : structure, fast : 1 });
-  console.log( `_.look with the fast option took ${_.time.spent( time )}`  );
+  console.log( `_.look with the fast option took ${_.time.spent( time )} on Njs ${process.version}`  );
 
   // Being green :)
   test.identical( '?', '?' );
