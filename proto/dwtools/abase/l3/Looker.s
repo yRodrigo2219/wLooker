@@ -816,6 +816,7 @@ Defaults.onDown = onDown;
 Defaults.onTerminal = onTerminal;
 Defaults.onSrcChanged = onSrcChanged;
 // Defaults.own = 0;
+Defaults.fast = 0;
 Defaults.recursive = Infinity;
 // Defaults.withStem = 1;
 // Defaults.trackingVisits = 1; /* xxx */

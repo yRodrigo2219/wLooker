@@ -1716,6 +1716,30 @@ function lookOptionRoot( test )
 
 }
 
+//
+
+function lookVelocityComparator( test )
+{
+  var structure = _.diagnosticStructureGenerate({ depth : 6 });
+  structure = structure.structure;
+  var times = 1;
+
+  var time = _.time.now();
+  for( let i = times ; i > 0 ; i-- )
+  var it = _.look({ src : structure });
+  console.log( `The current implementation of _.look took ${_.time.spent( time )}`  );
+
+  var time = _.time.now();
+  for( let i = times ; i > 0 ; i-- )
+  var it = _.look({ src : structure, fast : 1 });
+  console.log( `_.look with the fast option took ${_.time.spent( time )}`  );
+
+  // Being green :)
+  test.identical( '?', '?' );
+}
+lookVelocityComparator.experimental = true;
+lookVelocityComparator.timeOut = 1e6;
+
 // --
 // declare
 // --
@@ -1743,6 +1767,7 @@ var Self =
     onSrcChangedElements,
     onUpElements,
     lookOptionRoot,
+    lookVelocityComparator,
 
   }
 
