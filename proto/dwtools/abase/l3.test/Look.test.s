@@ -1736,7 +1736,7 @@ function lookPerformance( test )
 {
   var structure = _.diagnosticStructureGenerate({ depth : 5, mapComplexity : 3, mapLength : 5 });
   structure = structure.structure;
-  var times = 10;
+  var times = 1;
 
   var time = _.time.now();
   for( let i = times ; i > 0 ; i-- )
@@ -1769,32 +1769,98 @@ function lookOptionFast( test )
     g : new F32x([ 1,2,3 ]),
   }
 
-  var gotUp = [];
-  var gotDown = [];
+  var gotUpKeys = [];
+  var gotDownKeys = [];
+  var gotUpValues = [];
+  var gotDownValues = [];
+  var gotUpRoots = [];
+  var gotDownRoots = [];
+  /*
+  var gotUpLevels = [];
+  var gotDownLevels = [];
+  */
+
+  var expectedUpKeys = [ null, 'a', 'b', 'c', 0, 1, 'd', 0, 1, 'date', 'e', 'f', 'g' ];
+  var expectedDownKeys = [ 'a', 'b', 0, 1, 'c', 0, 'date', 1, 'd', 'e', 'f', 'g', null ];
+  var expectedUpValues = [ structure, structure.a, structure.b, structure.c, structure.c[0], structure.c[1], structure.d, structure.d[0], structure.d[1], structure.d[1].date, structure.e, structure.f, structure.g ];
+  var expectedDownValues = [ structure.a, structure.b, structure.c[0], structure.c[1], structure.c, structure.d[0], structure.d[1].date, structure.d[1], structure.d, structure.e, structure.f, structure.g , structure ];
+  var expectedRoots = [ structure, structure, structure, structure, structure, structure, structure, structure, structure, structure, structure, structure, structure ];
+  /*
+  var expectedUpLevels = [ 0, 1, 1, 1, 2, 2, 1, 2, 2, 3, 1, 1, 1 ];
+  var expectedDownLevels = [ 1, 1, 2, 2, 1, 2, 3, 2, 1, 1, 1, 1, 0 ];
+  */
 
   test.case = 'fast enabled';
   var it = _.look({ src : structure, onUp : handleUp, onDown: handleDown, fast : 1 });
-  var expectedUp = [ null, 'a', 'b', 'c', 0, 1, 'd', 0, 1, 'date', 'e', 'f', 'g' ];
-  var expectedDown = [ 'a', 'b', 0, 1, 'c', 0, 'date', 1, 'd', 'e', 'f', 'g', null ];
-  test.description = 'on up';
-  test.identical( gotUp, expectedUp );
-  test.description = 'on down';
-  test.identical( gotDown, expectedDown );
+  test.description = 'keys on up';
+  test.identical( gotUpKeys, expectedUpKeys );
+  test.description = 'keys on down';
+  test.identical( gotDownKeys, expectedDownKeys );
+  test.description = 'values on up';
+  test.identical( gotUpValues, expectedUpValues );
+  test.description = 'values on down';
+  test.identical( gotDownValues, expectedDownValues );
+  test.description = 'roots on up';
+  test.identical( gotUpRoots, expectedRoots );
+  test.description = 'roots on down';
+  test.identical( gotDownRoots, expectedRoots );
+  /*
+  test.description = 'levels on up';
+  test.identical( gotUpLevels, expectedUpLevels );
+  test.description = 'levels on down';
+  test.identical( gotDownLevels, expectedDownLevels );
+  */
+
+  test.case = 'fast disabled';
+  clean();
+  var it = _.look({ src : structure, onUp : handleUp, onDown: handleDown, fast : 0 });
+  test.description = 'keys on up';
+  test.identical( gotUpKeys, expectedUpKeys );
+  test.description = 'keys on down';
+  test.identical( gotDownKeys, expectedDownKeys );
+  test.description = 'values on up';
+  test.identical( gotUpValues, expectedUpValues );
+  test.description = 'values on down';
+  test.identical( gotDownValues, expectedDownValues );
+  test.description = 'roots on up';
+  test.identical( gotUpRoots, expectedRoots );
+  test.description = 'roots on down';
+  test.identical( gotDownRoots, expectedRoots );
+  /*
+  test.description = 'levels on up';
+  test.identical( gotUpLevels, expectedUpLevels );
+  test.description = 'levels on down';
+  test.identical( gotDownLevels, expectedDownLevels );
+  */
 
   function clean()
   {
-    gotUp.splice( 0, gotUp.length );
-    gotDown.splice( 0, gotDown.length );
+    gotUpKeys.splice( 0, gotUpKeys.length );
+    gotDownKeys.splice( 0, gotDownKeys.length );
+    gotUpValues.splice( 0, gotUpValues.length );
+    gotDownValues.splice( 0, gotDownValues.length );
+    gotUpRoots.splice( 0, gotUpRoots.length );
+    gotDownRoots.splice( 0, gotDownRoots.length );
+    /*
+    gotUpLevels.splice( 0, gotUpLevels.length );
+    gotDownLevels.splice( 0, gotDownLevels.length );
+    */
   }
 
   function handleUp( e, k, it )
   {
-    gotUp.push( k );
+    gotUpKeys.push( k ); // k === it.key
+    gotUpValues.push( e ); // e === it.src
+    gotUpRoots.push( it.root );
+    //gotUpLevels.push( it.level );
   }
 
   function handleDown( e, k, it )
   {
-    gotDown.push( k );
+    gotDownKeys.push( k ); // k === it.key
+    gotDownValues.push( e ); // e === it.src
+    gotDownRoots.push( it.root );
+    //gotDownLevels.push( it.level );
   }
 
 }
