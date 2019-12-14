@@ -1716,6 +1716,89 @@ function lookOptionRoot( test )
 
 }
 
+//
+
+/*
+  Total time, running 10 times.
+
+  | Interpreter  | Current | Fewer fields |
+  |   v13.3.0    | 19.869s |   19.099s    |
+  |   v12.7.0    | 20.766s |   19.597s    |
+  |   v11.3.0    | 48.617s |   26.296s    |
+  |   v10.16.0   | 50.688s |   26.610s    |
+
+  Fast has less fields.
+  Fast still making map copies.
+
+*/
+
+function lookPerformance( test )
+{
+  var structure = _.diagnosticStructureGenerate({ depth : 5, mapComplexity : 3, mapLength : 5 });
+  structure = structure.structure;
+  var times = 10;
+
+  var time = _.time.now();
+  for( let i = times ; i > 0 ; i-- )
+  var it1 = _.look({ src : structure });
+  console.log( `The current implementation of _.look took ${_.time.spent( time )} on Njs ${process.version}`  );
+
+  var time = _.time.now();
+  for( let i = times ; i > 0 ; i-- )
+  var it2 = _.look({ src : structure, fast : 1 });
+  console.log( `_.look with the fast option took ${_.time.spent( time )} on Njs ${process.version}`  );
+
+  // Being green :)
+  test.identical( it1.src, it2.src );
+}
+lookPerformance.experimental = true;
+lookPerformance.timeOut = 1e6;
+
+//
+
+function lookOptionFast( test )
+{
+  var structure =
+  {
+    a : 1,
+    b : 's',
+    c : [ 1,3 ],
+    d : [ 1,{ date : new Date( Date.UTC( 2010 ) ) } ],
+    e : function(){},
+    f : new BufferRaw( 13 ),
+    g : new F32x([ 1,2,3 ]),
+  }
+
+  var gotUp = [];
+  var gotDown = [];
+
+  test.case = 'fast enabled';
+  var it = _.look({ src : structure, onUp : handleUp, onDown: handleDown, fast : 1 });
+  var expectedUp = [ null, 'a', 'b', 'c', 0, 1, 'd', 0, 1, 'date', 'e', 'f', 'g' ];
+  var expectedDown = [ 'a', 'b', 0, 1, 'c', 0, 'date', 1, 'd', 'e', 'f', 'g', null ];
+  test.description = 'on up';
+  test.identical( gotUp, expectedUp );
+  test.description = 'on down';
+  test.identical( gotDown, expectedDown );
+
+  function clean()
+  {
+    gotUp.splice( 0, gotUp.length );
+    gotDown.splice( 0, gotDown.length );
+  }
+
+  function handleUp( e, k, it )
+  {
+    gotUp.push( k );
+  }
+
+  function handleDown( e, k, it )
+  {
+    gotDown.push( k );
+  }
+
+}
+
 // --
 // declare
 // --
@@ -1743,6 +1826,8 @@ var Self =
     onSrcChangedElements,
     onUpElements,
     lookOptionRoot,
+    lookPerformance,
+    lookOptionFast,
 
   }
 
