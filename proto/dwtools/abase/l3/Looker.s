@@ -93,19 +93,36 @@ function iteratorMake( o )
   if( iterator.root === null )
   iterator.root = iterator.src;
 
-  if( iterator.defaultUpToken === null )
+  if( iterator.defaultUpToken === null && !iterator.fast )
   iterator.defaultUpToken = _.strsShortest( iterator.upToken );
 
-  if( iterator.path === null )
-  iterator.path = iterator.defaultUpToken;
-  iterator.lastPath = iterator.path;
+  if(  !iterator.fast )
+  {
+    if( iterator.path === null )
+    iterator.path = iterator.defaultUpToken;
+    iterator.lastPath = iterator.path;
+  }
+  else
+  {
+    delete iterator.path;
+    delete iterator.lastPath;
+    delete iterator.lastSelected;
+    delete iterator.key;
+    delete iterator.upToken;
+    delete iterator.defaultUpToken;
+    delete iterator.logicalLevel;
+    delete iterator.context;/**/
+  }
 
   /* important assert, otherwise copying options from iteration could cause problem */
   _.assert( iterator.it === undefined );
   _.assert( _.numberIs( iterator.level ) );
-  _.assert( _.strIs( iterator.defaultUpToken ) );
-  _.assert( _.strIs( iterator.path ) );
-  _.assert( _.strIs( iterator.lastPath ) );
+  if( !iterator.fast )
+  {
+    _.assert( _.strIs( iterator.defaultUpToken ) );
+    _.assert( _.strIs( iterator.path ) );
+    _.assert( _.strIs( iterator.lastPath ) );
+  }
 
   return iterator;
 }
@@ -141,6 +158,7 @@ function iterationMake()
   let it = this;
   let newIt = it.iterationMakeAct();
 
+  if( !it.fast )
   newIt.logicalLevel = it.logicalLevel + 1; /* xxx : level and logicalLevel should have the same value if no reinit done */
 
   _.assert( arguments.length === 0 );
@@ -160,6 +178,7 @@ function iterationRemake()
   let it = this;
   let newIt = it.iterationMakeAct();
 
+  if( !it.fast )
   newIt.logicalLevel = it.logicalLevel;
 
   _.assert( arguments.length === 0 );
@@ -234,28 +253,32 @@ function select( e, k )
 
   it.level = it.level+1;
 
-  let k2 = k;
-  if( k2 === null )
-  k2 = e;
-  if( !_.strIs( k2 ) )
-  k2 = _.strShort( k2 );
-  let hasUp = _.strIs( k2 ) && _.strHasAny( k2, it.upToken );
-  if( hasUp )
-  k2 = '"' + k2 + '"';
-
-  if( _.strEnds( it.path, it.upToken ) )
+  if( !it.fast )
   {
-    it.path = it.path + k2;
-  }
-  else
-  {
-    it.path = it.path + it.defaultUpToken + k2;
+    let k2 = k;
+    if( k2 === null )
+    k2 = e;
+    if( !_.strIs( k2 ) )
+    k2 = _.strShort( k2 );
+    let hasUp = _.strIs( k2 ) && _.strHasAny( k2, it.upToken );
+    if( hasUp )
+    k2 = '"' + k2 + '"';
+
+    if( _.strEnds( it.path, it.upToken ) )
+    {
+      it.path = it.path + k2;
+    }
+    else
+    {
+      it.path = it.path + it.defaultUpToken + k2;
+    }
+
+    it.iterator.lastPath = it.path;
+    it.iterator.lastSelected = it;
+    it.key = k;
+    it.index = it.down.childrenCounter;
   }
 
-  it.iterator.lastPath = it.path;
-  it.iterator.lastSelected = it;
-  it.key = k;
-  it.index = it.down.childrenCounter;
   it.src = e;
 
   return it;
@@ -310,7 +333,8 @@ function visitUp()
   it.visitUpBegin();
 
   _.assert( _.routineIs( it.onUp ) );
-  let r = it.onUp.call( it, it.src, it.key, it );
+  let key = ( it.key === undefined ? null : it.key );
+  let r = it.onUp.call( it, it.src, key, it );
   _.assert( r === undefined );
 
   it.visitUpEnd()
@@ -387,7 +411,8 @@ function visitDown()
   // if( it.visiting )
   if( it.onDown )
   {
-    let r = it.onDown.call( it, it.src, it.key, it );
+    let key = ( it.key === undefined ? null : it.key );
+    let r = it.onDown.call( it, it.src, key, it );
     _.assert( r === undefined );
   }
 

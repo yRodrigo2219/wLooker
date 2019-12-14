@@ -1721,34 +1721,35 @@ function lookOptionRoot( test )
 /*
   Total time, running 10 times.
 
-  | Interpreter  | Current | Fast  |
-  |   v13.3.0    | 40.413s |   *   |
-  |   v12.7.0    | 39.770s |   *   |
-  |   v11.3.0    | 98.951s |   *   |
-  |   v10.16.0   | 99.942s |   *   |
+  | Interpreter  | Current | Fast    |
+  |   v13.3.0    | 19.828s | 18.970s |
+  |   v12.7.0    | 20.178s | 19.073s |
+  |   v11.3.0    | 49.097s | 26.204s | -- strange result. executed a few times to make sure
+  |   v10.16.0   | 50.446s | 26.660s | -- same thing
+
+  Fast has less fields.
+  Fast still making map copies.
 
 */
 
 function lookVelocityComparator( test )
 {
-  var structure = _.diagnosticStructureGenerate({ depth : 6 });
+  var structure = _.diagnosticStructureGenerate({ depth : 5, mapComplexity : 3, mapLength : 5 });
   structure = structure.structure;
   var times = 10;
 
   var time = _.time.now();
   for( let i = times ; i > 0 ; i-- )
-  var it = _.look({ src : structure });
+  var it1 = _.look({ src : structure });
   console.log( `The current implementation of _.look took ${_.time.spent( time )} on Njs ${process.version}`  );
 
-  /* not implemented, yet
   var time = _.time.now();
   for( let i = times ; i > 0 ; i-- )
-  var it = _.look({ src : structure, fast : 1 });
+  var it2 = _.look({ src : structure, fast : 1 });
   console.log( `_.look with the fast option took ${_.time.spent( time )} on Njs ${process.version}`  );
-  */
 
   // Being green :)
-  test.identical( '?', '?' );
+  test.identical( it1.src, it2.src );
 }
 lookVelocityComparator.experimental = true;
 lookVelocityComparator.timeOut = 1e6;
