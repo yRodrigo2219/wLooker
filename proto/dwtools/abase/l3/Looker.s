@@ -617,11 +617,19 @@ function ascend( onIteration )
 function _longAscend( onIteration, src )
 {
   let it = this;
+  
+  if( it.fast )
+  var newIt = it.iterationMake();
 
   for( let k = 0 ; k < src.length ; k++ )
   {
     let e = src[ k ];
-    let eit = it.iterationMake().select( e, k );
+    let eit;
+
+    if( it.fast )
+    eit = newIt.select( e, k );
+    else
+    eit = it.iterationMake().select( e, k );
 
     onIteration.call( it, eit );
 
@@ -637,11 +645,18 @@ function _mapAscend( onIteration, src )
 {
   let it = this;
 
+  if( it.fast )
+  var newIt = it.iterationMake();
+
   for( let k in src )
   {
     let e = src[ k ];
+    let eit;
 
-    let eit = it.iterationMake().select( e, k );
+    if( it.fast )
+    eit = newIt.select( e, k );
+    else
+    eit = it.iterationMake().select( e, k );
 
     onIteration.call( it, eit );
 
@@ -658,9 +673,17 @@ function _hashMapAscend( onIteration, src )
 {
   let it = this;
 
+  if( it.fast )
+  var newIt = it.iterationMake();
+
   for( var [ k, e ] of src )
   {
-    let eit = it.iterationMake().select( e, k );
+    let eit;
+
+    if( it.fast )
+    eit = newIt.select( e, k );
+    else
+    eit = it.iterationMake().select( e, k );
 
     onIteration.call( it, eit );
 
@@ -677,10 +700,18 @@ function _setAscend( onIteration, src )
 {
   let it = this;
 
+  if( it.fast )
+  var newIt = it.iterationMake();
+
   for( let e of src )
   {
     let k = e;
-    let eit = it.iterationMake().select( e, k );
+    let eit;
+    
+    if( it.fast )
+    eit = newIt.select( e, k );
+    else
+    eit = it.iterationMake().select( e, k );
 
     onIteration.call( it, eit );
 

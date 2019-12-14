@@ -1721,14 +1721,14 @@ function lookOptionRoot( test )
 /*
   Total time, running 10 times.
 
-  | Interpreter  | Current | Fewer fields |
-  |   v13.3.0    | 19.869s |   19.099s    |
-  |   v12.7.0    | 20.766s |   19.597s    |
-  |   v11.3.0    | 48.617s |   26.296s    |
-  |   v10.16.0   | 50.688s |   26.610s    |
+  | Interpreter  | Current | Fewer fields |  Fast  |
+  |   v13.3.0    | 19.892s |   19.099s    | 5.059s |
+  |   v12.7.0    | 20.953s |   19.597s    | 4.918s |
+  |   v11.3.0    | 50.399s |   26.296s    | 8.315s |
+  |   v10.16.0   | 48.481s |   26.610s    | 8.118s |
 
   Fast has less fields.
-  Fast still making map copies.
+  Fast isn't making map copies.
 
 */
 
