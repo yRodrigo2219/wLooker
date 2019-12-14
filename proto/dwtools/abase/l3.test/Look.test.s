@@ -1722,10 +1722,10 @@ function lookOptionRoot( test )
   Total time, running 10 times.
 
   | Interpreter  | Current | Fewer fields |
-  |   v13.3.0    | 19.828s |   18.970s    |
-  |   v12.7.0    | 20.178s |   19.073s    |
-  |   v11.3.0    | 49.097s |   26.204s    | -- strange result. executed a few times to make sure
-  |   v10.16.0   | 50.446s |   26.660s    | -- same thing
+  |   v13.3.0    | 19.869s |   19.099s    |
+  |   v12.7.0    | 20.766s |   19.597s    |
+  |   v11.3.0    | 48.617s |   26.296s    |
+  |   v10.16.0   | 50.688s |   26.610s    |
 
   Fast has less fields.
   Fast still making map copies.
@@ -1736,7 +1736,7 @@ function lookPerformance( test )
 {
   var structure = _.diagnosticStructureGenerate({ depth : 5, mapComplexity : 3, mapLength : 5 });
   structure = structure.structure;
-  var times = 1;
+  var times = 10;
 
   var time = _.time.now();
   for( let i = times ; i > 0 ; i-- )
