@@ -1722,10 +1722,10 @@ function lookOptionRoot( test )
   Total time, running 10 times.
 
   | Interpreter  | Current | Fewer fields |  Fast  |
-  |   v13.3.0    | 19.892s |   19.099s    | 5.059s |
-  |   v12.7.0    | 20.953s |   19.597s    | 4.918s |
-  |   v11.3.0    | 50.399s |   26.296s    | 8.315s |
-  |   v10.16.0   | 48.481s |   26.610s    | 8.118s |
+  |   v13.3.0    | 20.084s |   19.099s    | 4.588s |
+  |   v12.7.0    | 19.985s |   19.597s    | 4.556s |
+  |   v11.3.0    | 49.195s |   26.296s    | 8.814s |
+  |   v10.16.0   | 51.266s |   26.610s    | 9.048s |
 
   Fast has less fields.
   Fast isn't making map copies.
@@ -1736,7 +1736,7 @@ function lookPerformance( test )
 {
   var structure = _.diagnosticStructureGenerate({ depth : 5, mapComplexity : 3, mapLength : 5 });
   structure = structure.structure;
-  var times = 1;
+  var times = 10;
 
   var time = _.time.now();
   for( let i = times ; i > 0 ; i-- )
@@ -1800,6 +1800,15 @@ function lookOptionFast( test )
   var expectedContinue = [ true, true, true, true, true, true ];
   var expectedUpIterable = [ 'map-like', false, false, 'long-like', false, false ];
   var expectedDownIterable = [ false, false, false, false, 'long-like', 'map-like' ];
+  var expectedItSrc = structure;
+  var expectedItKey = null;
+  var expectedItContinue = true;
+  var expectedItAscending = false;
+  var expectedItRevisited = false;
+  var expectedItVisiting = true;
+  var expectedItIterable = 'map-like';
+  var expectedItVisitingCounting = true;
+  var expectedItRoot = structure;
 
   run({ fast : 0 });
   run({ fast : 1 });
@@ -1849,6 +1858,24 @@ function lookOptionFast( test )
     test.identical( gotUpIterable, expectedUpIterable );
     test.description = 'iterable on down';
     test.identical( gotDownIterable, expectedDownIterable );
+    test.description = 'it src';
+    test.identical( it.src, expectedItSrc );
+    test.description = 'it key';
+    test.identical( it.key, expectedItKey );
+    test.description = 'it continue';
+    test.identical( it.continue, expectedItContinue );
+    test.description = 'it ascending';
+    test.identical( it.ascending, expectedItAscending );
+    test.description = 'it revisited';
+    test.identical( it.revisited, expectedItRevisited );
+    test.description = 'it visiting';
+    test.identical( it.visiting, expectedItVisiting );
+    test.description = 'it iterable';
+    test.identical( it.iterable, expectedItIterable );
+    test.description = 'it visitCounting';
+    test.identical( it.visitCounting, expectedItVisitingCounting );
+    test.description = 'it root';
+    test.identical( it.root, expectedItRoot );
   }
 
   function clean()
@@ -1949,6 +1976,15 @@ function lookOptionFastCycled( test )
   var expectedContinue = [ true, true, true, true, true, true, true, true, true, true, true ];
   var expectedUpIterable = [ 'map-like', 'long-like', 'map-like', 'map-like', 'long-like', false, false, 'map-like', 'long-like', false, false ];
   var expectedDownIterable = [ false, false, 'long-like', 'map-like', 'map-like', false, false, 'long-like', 'map-like', 'long-like', 'map-like' ];
+  var expectedItSrc = structure;
+  var expectedItKey = null;
+  var expectedItContinue = true;
+  var expectedItAscending = false;
+  var expectedItRevisited = false;
+  var expectedItVisiting = true;
+  var expectedItIterable = 'map-like';
+  var expectedItVisitingCounting = true;
+  var expectedItRoot = structure;
 
   run({ fast : 0 });
   run({ fast : 1 });
@@ -1998,6 +2034,24 @@ function lookOptionFastCycled( test )
     test.identical( gotUpIterable, expectedUpIterable );
     test.description = 'iterable on down';
     test.identical( gotDownIterable, expectedDownIterable );
+    test.description = 'it src';
+    test.identical( it.src, expectedItSrc );
+    test.description = 'it key';
+    test.identical( it.key, expectedItKey );
+    test.description = 'it continue';
+    test.identical( it.continue, expectedItContinue );
+    test.description = 'it ascending';
+    test.identical( it.ascending, expectedItAscending );
+    test.description = 'it revisited';
+    test.identical( it.revisited, expectedItRevisited );
+    test.description = 'it visiting';
+    test.identical( it.visiting, expectedItVisiting );
+    test.description = 'it iterable';
+    test.identical( it.iterable, expectedItIterable );
+    test.description = 'it visitCounting';
+    test.identical( it.visitCounting, expectedItVisitingCounting );
+    test.description = 'it root';
+    test.identical( it.root, expectedItRoot );
   }
  
   function clean()
