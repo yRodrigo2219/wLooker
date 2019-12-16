@@ -621,7 +621,7 @@ function ascend( onIteration )
 function _longAscend( onIteration, src )
 {
   let it = this;
-  
+
   if( it.fast )
   var newIt = it.iterationMake();
 
@@ -711,7 +711,7 @@ function _setAscend( onIteration, src )
   {
     let k = e;
     let eit;
-    
+
     if( it.fast )
     eit = newIt.select( e, k );
     else
