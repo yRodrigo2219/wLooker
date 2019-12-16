@@ -3,13 +3,13 @@ root:
   - wLooker.out
 consistency:
   wLooker.out.will.yml: &ref_0
-    hash: 600bd431c7ee9246eb676861ea4080d0
+    hash: 9624941301f7c36f5be9f38934f5b56d
     size: 38672
   ../.ex.will.yml: &ref_1
     hash: 97a8834faedad2154c969251df4657b0
     size: 1921
   ../.im.will.yml: &ref_2
-    hash: 1e594f343ce09cd35f6c7261effd37df
+    hash: 846e81a6253b2bebc99d1bbb2df9c187
     size: 5038
 module:
   wLooker.out:
@@ -117,7 +117,7 @@ module:
       entry.proto.no.tests:
         criterion:
           tests: no.tests
-        path: ../proto/dwtools/abase/l3/Looker.s
+        path: ../proto/dwtools/abase/l2/Looker.s
       entry.proto.only.tests:
         criterion:
           tests: only.tests
@@ -127,13 +127,13 @@ module:
           debug: debug
           raw: raw
           content: prime
-        path: '{path::out.*=1}/source/dwtools/abase/l3/Looker.s'
+        path: '{path::out.*=1}/source/dwtools/abase/l2/Looker.s'
       entry.out.raw.debug.release:
         criterion:
           debug: release
           raw: raw
           content: prime
-        path: '{path::out.*=1}/source/dwtools/abase/l3/Looker.s'
+        path: '{path::out.*=1}/source/dwtools/abase/l2/Looker.s'
       entry.out.compiled.debug.debug:
         criterion:
           debug: debug
@@ -162,10 +162,10 @@ module:
           - ../proto/dwtools
           - ../proto/dwtools/Tools.s
           - ../proto/dwtools/abase
-          - ../proto/dwtools/abase/l3
-          - ../proto/dwtools/abase/l3/Looker.s
-          - ../proto/dwtools/abase/l3.test
-          - ../proto/dwtools/abase/l3.test/Look.test.s
+          - ../proto/dwtools/abase/l2
+          - ../proto/dwtools/abase/l2/Looker.s
+          - ../proto/dwtools/abase/l2.test
+          - ../proto/dwtools/abase/l2.test/Look.test.s
           - ../proto/dwtools/amid
           - ../proto/dwtools/atop
     submodule:
@@ -920,7 +920,7 @@ module:
       entry.proto.no.tests:
         criterion:
           tests: no.tests
-        path: proto/dwtools/abase/l3/Looker.s
+        path: proto/dwtools/abase/l2/Looker.s
       entry.proto.only.tests:
         criterion:
           tests: only.tests
@@ -930,13 +930,13 @@ module:
           debug: debug
           raw: raw
           content: prime
-        path: '{path::out.*=1}/source/dwtools/abase/l3/Looker.s'
+        path: '{path::out.*=1}/source/dwtools/abase/l2/Looker.s'
       entry.out.raw.debug.release:
         criterion:
           debug: release
           raw: raw
           content: prime
-        path: '{path::out.*=1}/source/dwtools/abase/l3/Looker.s'
+        path: '{path::out.*=1}/source/dwtools/abase/l2/Looker.s'
       entry.out.compiled.debug.debug:
         criterion:
           debug: debug
@@ -1516,6 +1516,8 @@ module:
         hash: 97a8834faedad2154c969251df4657b0
         size: 1921
       ../.im.will.yml:
-        hash: 1e594f343ce09cd35f6c7261effd37df
+        hash: 846e81a6253b2bebc99d1bbb2df9c187
         size: 5038
-      wLooker.out.will.yml: *ref_0
+      wLooker.out.will.yml:
+        hash: 9624941301f7c36f5be9f38934f5b56d
+        size: 38672
