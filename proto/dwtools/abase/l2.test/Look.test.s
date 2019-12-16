@@ -7,7 +7,7 @@ if( typeof module !== 'undefined' )
 
   let _ = require( '../../Tools.s' );
 
-  require( '../l3/Looker.s' );
+  require( '../l2/Looker.s' );
 
   _.include( 'wTesting' );
   _.include( 'wStringer' );
