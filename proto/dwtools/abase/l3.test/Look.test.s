@@ -1763,10 +1763,6 @@ function lookOptionFast( test )
     a : 1,
     b : 's',
     c : [ 1,3 ],
-    d : [ 1,{ date : new Date( Date.UTC( 2010 ) ) } ],
-    e : function(){},
-    f : new BufferRaw( 13 ),
-    g : new F32x([ 1,2,3 ]),
   }
 
   var gotUpKeys = [];
@@ -1775,20 +1771,36 @@ function lookOptionFast( test )
   var gotDownValues = [];
   var gotUpRoots = [];
   var gotDownRoots = [];
-  /*
-  var gotUpLevels = [];
-  var gotDownLevels = [];
-  */
 
-  var expectedUpKeys = [ null, 'a', 'b', 'c', 0, 1, 'd', 0, 1, 'date', 'e', 'f', 'g' ];
-  var expectedDownKeys = [ 'a', 'b', 0, 1, 'c', 0, 'date', 1, 'd', 'e', 'f', 'g', null ];
-  var expectedUpValues = [ structure, structure.a, structure.b, structure.c, structure.c[0], structure.c[1], structure.d, structure.d[0], structure.d[1], structure.d[1].date, structure.e, structure.f, structure.g ];
-  var expectedDownValues = [ structure.a, structure.b, structure.c[0], structure.c[1], structure.c, structure.d[0], structure.d[1].date, structure.d[1], structure.d, structure.e, structure.f, structure.g , structure ];
-  var expectedRoots = [ structure, structure, structure, structure, structure, structure, structure, structure, structure, structure, structure, structure, structure ];
-  /*
-  var expectedUpLevels = [ 0, 1, 1, 1, 2, 2, 1, 2, 2, 3, 1, 1, 1 ];
-  var expectedDownLevels = [ 1, 1, 2, 2, 1, 2, 3, 2, 1, 1, 1, 1, 0 ];
-  */
+  var gotUpRecursive = [];
+  var gotDownRecursive = [];
+  var gotUpRevisited = [];
+  var gotDownRevisited = [];
+  var gotUpVisitingCounting = [];
+  var gotDownVisitingCounting = [];
+  var gotUpVisiting = [];
+  var gotDownVisiting = [];
+  var gotUpAscending = [];
+  var gotDownAscending = [];
+  var gotUpContinue = [];
+  var gotDownContinue = [];
+  var gotUpIterable = [];
+  var gotDownIterable = [];
+
+  var expectedUpKeys = [ null, 'a', 'b', 'c', 0, 1 ];
+  var expectedDownKeys = [ 'a', 'b', 0, 1, 'c', null ];
+  var expectedUpValues = [ structure, structure.a, structure.b, structure.c, structure.c[0], structure.c[1] ];
+  var expectedDownValues = [ structure.a, structure.b, structure.c[0], structure.c[1], structure.c, structure ];
+  var expectedRoots = [ structure, structure, structure, structure, structure, structure ];
+  var expectedRecursive = [ Infinity, Infinity, Infinity, Infinity, Infinity, Infinity ];
+  var expectedRevisited = [ false, false, false, false, false, false ];
+  var expectedVisitingCounting = [ true, true, true, true, true, true ];
+  var expectedVisiting = [ true, true, true, true, true, true ];
+  var expectedUpAscending = [ true, true, true, true, true, true ];
+  var expectedDownAscending = [ false, false, false, false, false, false ];
+  var expectedContinue = [ true, true, true, true, true, true ];
+  var expectedUpIterable = [ 'map-like', false, false, 'long-like', false, false ];
+  var expectedDownIterable = [ false, false, false, false, 'long-like', 'map-like' ];
 
   test.case = 'fast enabled';
   var it = _.look({ src : structure, onUp : handleUp, onDown: handleDown, fast : 1 });
@@ -1804,12 +1816,34 @@ function lookOptionFast( test )
   test.identical( gotUpRoots, expectedRoots );
   test.description = 'roots on down';
   test.identical( gotDownRoots, expectedRoots );
-  /*
-  test.description = 'levels on up';
-  test.identical( gotUpLevels, expectedUpLevels );
-  test.description = 'levels on down';
-  test.identical( gotDownLevels, expectedDownLevels );
-  */
+  test.description = 'recursive on up';
+  test.identical( gotUpRecursive, expectedRecursive );
+  test.description = 'recursive on down';
+  test.identical( gotDownRecursive, expectedRecursive );
+  test.description = 'revisited on up';
+  test.identical( gotUpRevisited, expectedRevisited );
+  test.description = 'revisited on down';
+  test.identical( gotDownRevisited, expectedRevisited );
+  test.description = 'visitCounting on up';
+  test.identical( gotUpVisitingCounting, expectedVisitingCounting );
+  test.description = 'visitCounting on down';
+  test.identical( gotDownVisitingCounting, expectedVisitingCounting );
+  test.description = 'visiting on up';
+  test.identical( gotUpVisiting, expectedVisiting );
+  test.description = 'visiting on down';
+  test.identical( gotDownVisiting, expectedVisiting );
+  test.description = 'ascending on up';
+  test.identical( gotUpAscending, expectedUpAscending );
+  test.description = 'ascending on down';
+  test.identical( gotDownAscending, expectedDownAscending );
+  test.description = 'continue on up';
+  test.identical( gotUpContinue, expectedContinue );
+  test.description = 'continue on down';
+  test.identical( gotDownContinue, expectedContinue );
+  test.description = 'iterable on up';
+  test.identical( gotUpIterable, expectedUpIterable );
+  test.description = 'iterable on down';
+  test.identical( gotDownIterable, expectedDownIterable );
 
   test.case = 'fast disabled';
   clean();
@@ -1826,12 +1860,35 @@ function lookOptionFast( test )
   test.identical( gotUpRoots, expectedRoots );
   test.description = 'roots on down';
   test.identical( gotDownRoots, expectedRoots );
-  /*
-  test.description = 'levels on up';
-  test.identical( gotUpLevels, expectedUpLevels );
-  test.description = 'levels on down';
-  test.identical( gotDownLevels, expectedDownLevels );
-  */
+  test.description = 'recursive on up';
+  test.identical( gotUpRecursive, expectedRecursive );
+  test.description = 'recursive on down';
+  test.identical( gotDownRecursive, expectedRecursive );
+  test.description = 'revisited on up';
+  test.identical( gotUpRevisited, expectedRevisited );
+  test.description = 'revisited on down';
+  test.identical( gotDownRevisited, expectedRevisited );
+  test.description = 'visitCounting on up';
+  test.identical( gotUpVisitingCounting, expectedVisitingCounting );
+  test.description = 'visitCounting on down';
+  test.identical( gotDownVisitingCounting, expectedVisitingCounting );
+  test.description = 'visiting on up';
+  test.identical( gotUpVisiting, expectedVisiting );
+  test.description = 'visiting on down';
+  test.identical( gotDownVisiting, expectedVisiting );
+  test.description = 'ascending on up';
+  test.identical( gotUpAscending, expectedUpAscending );
+  test.description = 'ascending on down';
+  test.identical( gotDownAscending, expectedDownAscending );
+  test.description = 'continue on up';
+  test.identical( gotUpContinue, expectedContinue );
+  test.description = 'continue on down';
+  test.identical( gotDownContinue, expectedContinue );
+  test.description = 'iterable on up';
+  test.identical( gotUpIterable, expectedUpIterable );
+  test.description = 'iterable on down';
+  test.identical( gotDownIterable, expectedDownIterable );
+  
 
   function clean()
   {
@@ -1841,10 +1898,20 @@ function lookOptionFast( test )
     gotDownValues.splice( 0, gotDownValues.length );
     gotUpRoots.splice( 0, gotUpRoots.length );
     gotDownRoots.splice( 0, gotDownRoots.length );
-    /*
-    gotUpLevels.splice( 0, gotUpLevels.length );
-    gotDownLevels.splice( 0, gotDownLevels.length );
-    */
+    gotUpRecursive.splice( 0, gotUpRecursive.length );
+    gotDownRecursive.splice( 0, gotDownRecursive.length );
+    gotUpRevisited.splice( 0, gotUpRevisited.length );
+    gotDownRevisited.splice( 0, gotDownRevisited.length );
+    gotUpVisitingCounting.splice( 0, gotUpVisitingCounting.length );
+    gotDownVisitingCounting.splice( 0, gotDownVisitingCounting.length );
+    gotUpVisiting.splice( 0, gotUpVisiting.length );
+    gotDownVisiting.splice( 0, gotDownVisiting.length );
+    gotUpAscending.splice( 0, gotUpAscending.length );
+    gotDownAscending.splice( 0, gotDownAscending.length );
+    gotUpContinue.splice( 0, gotUpContinue.length );
+    gotDownContinue.splice( 0, gotDownContinue.length );
+    gotUpIterable.splice( 0, gotUpIterable.length );
+    gotDownIterable.splice( 0, gotDownIterable.length );
   }
 
   function handleUp( e, k, it )
@@ -1852,7 +1919,13 @@ function lookOptionFast( test )
     gotUpKeys.push( k ); // k === it.key
     gotUpValues.push( e ); // e === it.src
     gotUpRoots.push( it.root );
-    //gotUpLevels.push( it.level );
+    gotUpRecursive.push( it.recursive );
+    gotUpRevisited.push( it.revisited );
+    gotUpVisitingCounting.push( it.visitCounting );
+    gotUpVisiting.push( it.visiting );
+    gotUpAscending.push( it.ascending );
+    gotUpContinue.push( it.continue );
+    gotUpIterable.push( it.iterable );
   }
 
   function handleDown( e, k, it )
@@ -1860,7 +1933,13 @@ function lookOptionFast( test )
     gotDownKeys.push( k ); // k === it.key
     gotDownValues.push( e ); // e === it.src
     gotDownRoots.push( it.root );
-    //gotDownLevels.push( it.level );
+    gotDownRecursive.push( it.recursive );
+    gotDownRevisited.push( it.revisited );
+    gotDownVisitingCounting.push( it.visitCounting );
+    gotDownVisiting.push( it.visiting );
+    gotDownAscending.push( it.ascending );
+    gotDownContinue.push( it.continue );
+    gotDownIterable.push( it.iterable );
   }
 
 }

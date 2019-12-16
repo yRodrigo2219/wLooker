@@ -98,6 +98,8 @@ function iteratorMake( o )
 
   if(  iterator.fast )
   {
+    delete iterator.childrenCounter;
+    delete iterator.level;
     delete iterator.path;
     delete iterator.lastPath;
     delete iterator.lastSelected;
@@ -115,9 +117,9 @@ function iteratorMake( o )
 
   /* important assert, otherwise copying options from iteration could cause problem */
   _.assert( iterator.it === undefined );
-  _.assert( _.numberIs( iterator.level ) );
   if( !iterator.fast )
   {
+    _.assert( _.numberIs( iterator.level ) );
     _.assert( _.strIs( iterator.defaultUpToken ) );
     _.assert( _.strIs( iterator.path ) );
     _.assert( _.strIs( iterator.lastPath ) );
@@ -235,8 +237,9 @@ function select( e, k )
   let it = this;
 
   _.assert( arguments.length === 2, 'Expects two argument' );
-  _.assert( it.level >= 0 );
   _.assert( _.objectIs( it.down ) );
+  if( !it.fast )
+  _.assert( it.level >= 0 );
 
   if( e === undefined )
   {
@@ -250,10 +253,10 @@ function select( e, k )
     e = undefined;
   }
 
-  it.level = it.level+1;
-
   if( !it.fast )
   {
+    it.level = it.level+1;
+
     let k2 = k;
     if( k2 === null )
     k2 = e;
@@ -296,6 +299,7 @@ function look()
 {
   let it = this;
 
+  if( !it.fast )
   _.assert( it.level >= 0 );
   _.assert( arguments.length === 0 );
 
@@ -357,7 +361,7 @@ function visitUpBegin()
   // if( !it.visiting )
   // return;
 
-  if( it.down )
+  if( it.down && !it.fast )
   it.down.childrenCounter += 1;
 
   // if( it.iterator.revisiting < 2 )
@@ -536,7 +540,7 @@ function canAscend()
   return false;
 
   _.assert( _.numberIs( it.recursive ) );
-  if( it.recursive > 0 )
+  if( it.recursive > 0 && !it.fast )
   if( !( it.level < it.recursive ) )
   return false;
 
