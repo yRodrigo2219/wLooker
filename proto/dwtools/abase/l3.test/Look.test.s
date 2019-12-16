@@ -1771,7 +1771,6 @@ function lookOptionFast( test )
   var gotDownValues = [];
   var gotUpRoots = [];
   var gotDownRoots = [];
-
   var gotUpRecursive = [];
   var gotDownRecursive = [];
   var gotUpRevisited = [];
@@ -1944,6 +1943,192 @@ function lookOptionFast( test )
 
 }
 
+//
+
+function lookOptionFastCycled( test )
+{
+  var structure = {
+    a : [ structure, structure ],
+    b : { c : structure }
+  }
+
+  var gotUpKeys = [];
+  var gotDownKeys = [];
+  var gotUpValues = [];
+  var gotDownValues = [];
+  var gotUpRoots = [];
+  var gotDownRoots = [];
+  var gotUpRecursive = [];
+  var gotDownRecursive = [];
+  var gotUpRevisited = [];
+  var gotDownRevisited = [];
+  var gotUpVisitingCounting = [];
+  var gotDownVisitingCounting = [];
+  var gotUpVisiting = [];
+  var gotDownVisiting = [];
+  var gotUpAscending = [];
+  var gotDownAscending = [];
+  var gotUpContinue = [];
+  var gotDownContinue = [];
+  var gotUpIterable = [];
+  var gotDownIterable = [];
+
+  var expectedUpKeys = [ null, 'a', 0, 1, 'b', 'c' ];
+  var expectedDownKeys = [ 0, 1, 'a', 'c', 'b', null ];
+  var expectedUpValues = [ structure, structure.a, structure.a[0], structure.a[1], structure.b, structure.b.c ];
+  var expectedDownValues = [ structure.a[0], structure.a[1], structure.a, structure.b.c, structure.b, structure ];
+  var expectedRoots = [ structure, structure, structure, structure, structure, structure ];
+  var expectedRecursive = [ Infinity, Infinity, Infinity, Infinity, Infinity, Infinity ];
+  var expectedRevisited = [ false, false, false, false, false, false ];
+  var expectedVisitingCounting = [ true, true, true, true, true, true ];
+  var expectedVisiting = [ true, true, true, true, true, true ];
+  var expectedUpAscending = [ true, true, true, true, true, true ];
+  var expectedDownAscending = [ false, false, false, false, false, false ];
+  var expectedContinue = [ true, true, true, true, true, true ];
+  var expectedUpIterable = [ 'map-like', 'long-like', false, false, 'map-like', false ];
+  var expectedDownIterable = [ false, false, 'long-like', false, 'map-like', 'map-like' ];
+
+  test.case = 'cycled fast enabled';
+  var it = _.look({ src : structure, onUp : handleUp, onDown: handleDown, fast : 1 });
+  test.description = 'keys on up';
+  test.identical( gotUpKeys, expectedUpKeys );
+  test.description = 'keys on down';
+  test.identical( gotDownKeys, expectedDownKeys );
+  test.description = 'values on up';
+  test.identical( gotUpValues, expectedUpValues );
+  test.description = 'values on down';
+  test.identical( gotDownValues, expectedDownValues );
+  test.description = 'roots on up';
+  test.identical( gotUpRoots, expectedRoots );
+  test.description = 'roots on down';
+  test.identical( gotDownRoots, expectedRoots );
+  test.description = 'recursive on up';
+  test.identical( gotUpRecursive, expectedRecursive );
+  test.description = 'recursive on down';
+  test.identical( gotDownRecursive, expectedRecursive );
+  test.description = 'revisited on up';
+  test.identical( gotUpRevisited, expectedRevisited );
+  test.description = 'revisited on down';
+  test.identical( gotDownRevisited, expectedRevisited );
+  test.description = 'visitCounting on up';
+  test.identical( gotUpVisitingCounting, expectedVisitingCounting );
+  test.description = 'visitCounting on down';
+  test.identical( gotDownVisitingCounting, expectedVisitingCounting );
+  test.description = 'visiting on up';
+  test.identical( gotUpVisiting, expectedVisiting );
+  test.description = 'visiting on down';
+  test.identical( gotDownVisiting, expectedVisiting );
+  test.description = 'ascending on up';
+  test.identical( gotUpAscending, expectedUpAscending );
+  test.description = 'ascending on down';
+  test.identical( gotDownAscending, expectedDownAscending );
+  test.description = 'continue on up';
+  test.identical( gotUpContinue, expectedContinue );
+  test.description = 'continue on down';
+  test.identical( gotDownContinue, expectedContinue );
+  test.description = 'iterable on up';
+  test.identical( gotUpIterable, expectedUpIterable );
+  test.description = 'iterable on down';
+  test.identical( gotDownIterable, expectedDownIterable );
+
+  test.case = 'cycled fast disabled';
+  clean();
+  var it = _.look({ src : structure, onUp : handleUp, onDown: handleDown, fast : 0 });
+  test.description = 'keys on up';
+  test.identical( gotUpKeys, expectedUpKeys );
+  test.description = 'keys on down';
+  test.identical( gotDownKeys, expectedDownKeys );
+  test.description = 'values on up';
+  test.identical( gotUpValues, expectedUpValues );
+  test.description = 'values on down';
+  test.identical( gotDownValues, expectedDownValues );
+  test.description = 'roots on up';
+  test.identical( gotUpRoots, expectedRoots );
+  test.description = 'roots on down';
+  test.identical( gotDownRoots, expectedRoots );
+  test.description = 'recursive on up';
+  test.identical( gotUpRecursive, expectedRecursive );
+  test.description = 'recursive on down';
+  test.identical( gotDownRecursive, expectedRecursive );
+  test.description = 'revisited on up';
+  test.identical( gotUpRevisited, expectedRevisited );
+  test.description = 'revisited on down';
+  test.identical( gotDownRevisited, expectedRevisited );
+  test.description = 'visitCounting on up';
+  test.identical( gotUpVisitingCounting, expectedVisitingCounting );
+  test.description = 'visitCounting on down';
+  test.identical( gotDownVisitingCounting, expectedVisitingCounting );
+  test.description = 'visiting on up';
+  test.identical( gotUpVisiting, expectedVisiting );
+  test.description = 'visiting on down';
+  test.identical( gotDownVisiting, expectedVisiting );
+  test.description = 'ascending on up';
+  test.identical( gotUpAscending, expectedUpAscending );
+  test.description = 'ascending on down';
+  test.identical( gotDownAscending, expectedDownAscending );
+  test.description = 'continue on up';
+  test.identical( gotUpContinue, expectedContinue );
+  test.description = 'continue on down';
+  test.identical( gotDownContinue, expectedContinue );
+  test.description = 'iterable on up';
+  test.identical( gotUpIterable, expectedUpIterable );
+  test.description = 'iterable on down';
+  test.identical( gotDownIterable, expectedDownIterable );
+ 
+  function clean()
+  {
+    gotUpKeys.splice( 0, gotUpKeys.length );
+    gotDownKeys.splice( 0, gotDownKeys.length );
+    gotUpValues.splice( 0, gotUpValues.length );
+    gotDownValues.splice( 0, gotDownValues.length );
+    gotUpRoots.splice( 0, gotUpRoots.length );
+    gotDownRoots.splice( 0, gotDownRoots.length );
+    gotUpRecursive.splice( 0, gotUpRecursive.length );
+    gotDownRecursive.splice( 0, gotDownRecursive.length );
+    gotUpRevisited.splice( 0, gotUpRevisited.length );
+    gotDownRevisited.splice( 0, gotDownRevisited.length );
+    gotUpVisitingCounting.splice( 0, gotUpVisitingCounting.length );
+    gotDownVisitingCounting.splice( 0, gotDownVisitingCounting.length );
+    gotUpVisiting.splice( 0, gotUpVisiting.length );
+    gotDownVisiting.splice( 0, gotDownVisiting.length );
+    gotUpAscending.splice( 0, gotUpAscending.length );
+    gotDownAscending.splice( 0, gotDownAscending.length );
+    gotUpContinue.splice( 0, gotUpContinue.length );
+    gotDownContinue.splice( 0, gotDownContinue.length );
+    gotUpIterable.splice( 0, gotUpIterable.length );
+    gotDownIterable.splice( 0, gotDownIterable.length );
+  }
+
+  function handleUp( e, k, it )
+  {
+    gotUpKeys.push( k ); // k === it.key
+    gotUpValues.push( e ); // e === it.src
+    gotUpRoots.push( it.root );
+    gotUpRecursive.push( it.recursive );
+    gotUpRevisited.push( it.revisited );
+    gotUpVisitingCounting.push( it.visitCounting );
+    gotUpVisiting.push( it.visiting );
+    gotUpAscending.push( it.ascending );
+    gotUpContinue.push( it.continue );
+    gotUpIterable.push( it.iterable );
+  }
+
+  function handleDown( e, k, it )
+  {
+    gotDownKeys.push( k ); // k === it.key
+    gotDownValues.push( e ); // e === it.src
+    gotDownRoots.push( it.root );
+    gotDownRecursive.push( it.recursive );
+    gotDownRevisited.push( it.revisited );
+    gotDownVisitingCounting.push( it.visitCounting );
+    gotDownVisiting.push( it.visiting );
+    gotDownAscending.push( it.ascending );
+    gotDownContinue.push( it.continue );
+    gotDownIterable.push( it.iterable );
+  }
+
+}
+
 // --
 // declare
 // --
@@ -1973,6 +2158,7 @@ var Self =
     lookOptionRoot,
     lookPerformance,
     lookOptionFast,
+    lookOptionFastCycled,
 
   }
 
