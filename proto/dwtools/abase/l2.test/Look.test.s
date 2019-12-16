@@ -1793,7 +1793,7 @@ function lookOptionFast( test )
   let gotDownIterable = [];
   let wasIt = undefined;
 
-  // run({ fast : 0 });
+  run({ fast : 0 });
   run({ fast : 1 });
 
   function run( o )
@@ -1802,7 +1802,13 @@ function lookOptionFast( test )
     test.case = 'fast ' + o.fast;
     clean();
 
-    var it = _.look({ src : structure, onUp : handleUp, onDown: handleDown, fast : o.fast });
+    var it = _.look
+    ({
+      src : structure,
+      onUp : function() { return handleUp( o, ... arguments ) },
+      onDown : function() { return handleDown( o, ... arguments ) },
+      fast : o.fast,
+    });
 
     test.description = 'keys on up';
     var expectedUpKeys = [ null, 'a', 'b', 'c', 0, 1 ];
@@ -1884,10 +1890,14 @@ function lookOptionFast( test )
     test.description = 'it root';
     test.identical( it.root, structure );
 
+    if( o.fast )
+    test.is( wasIt === it );
+
   }
 
   function clean()
   {
+    wasIt = undefined;
     gotUpKeys.splice( 0, gotUpKeys.length );
     gotDownKeys.splice( 0, gotDownKeys.length );
     gotUpValues.splice( 0, gotUpValues.length );
@@ -1910,12 +1920,15 @@ function lookOptionFast( test )
     gotDownIterable.splice( 0, gotDownIterable.length );
   }
 
-  function handleUp( e, k, it )
+  function handleUp( op, e, k, it )
   {
 
     debugger;
-    test.is( wasIt === undefined || wasIt === it );
-    wasIt = it;
+    if( op.fast )
+    {
+      test.is( wasIt === undefined || wasIt === it );
+      wasIt = it;
+    }
 
     gotUpKeys.push( k ); // k === it.key
     gotUpValues.push( e ); // e === it.src
@@ -1930,11 +1943,14 @@ function lookOptionFast( test )
 
   }
 
-  function handleDown( e, k, it )
+  function handleDown( op, e, k, it )
   {
 
     debugger;
-    test.is( wasIt === it );
+    if( op.fast )
+    {
+      test.is( wasIt === it );
+    }
 
     gotDownKeys.push( k ); // k === it.key
     gotDownValues.push( e ); // e === it.src
@@ -1990,7 +2006,13 @@ function lookOptionFastCycled( test )
     test.case = 'cycled fast ' + o.fast;
     clean();
 
-    var it = _.look({ src : structure, onUp : handleUp, onDown: handleDown, fast : o.fast });
+    var it = _.look
+    ({
+      src : structure,
+      onUp : function() { return handleUp( o, ... arguments ) },
+      onDown : function() { return handleDown( o, ... arguments ) },
+      fast : o.fast,
+    });
 
     test.description = 'keys on up';
     var expectedUpKeys = [ null, 'a', 0, 'd', 'e', 0, 1, 1, 'f', 0, 1 ];
@@ -2072,10 +2094,14 @@ function lookOptionFastCycled( test )
     test.description = 'it root';
     test.identical( it.root, structure );
 
+    if( o.fast )
+    test.is( wasIt === it );
+
   }
 
   function clean()
   {
+    wasIt = undefined;
     gotUpKeys.splice( 0, gotUpKeys.length );
     gotDownKeys.splice( 0, gotDownKeys.length );
     gotUpValues.splice( 0, gotUpValues.length );
@@ -2098,12 +2124,15 @@ function lookOptionFastCycled( test )
     gotDownIterable.splice( 0, gotDownIterable.length );
   }
 
-  function handleUp( e, k, it )
+  function handleUp( op, e, k, it )
   {
 
     debugger;
-    test.is( wasIt === undefined || wasIt === it );
-    wasIt = it;
+    if( op.fast )
+    {
+      test.is( wasIt === undefined || wasIt === it );
+      wasIt = it;
+    }
 
     gotUpKeys.push( k ); // k === it.key
     gotUpValues.push( e ); // e === it.src
@@ -2117,10 +2146,13 @@ function lookOptionFastCycled( test )
     gotUpIterable.push( it.iterable );
   }
 
-  function handleDown( e, k, it )
+  function handleDown( op, e, k, it )
   {
 
-    test.is( wasIt === it );
+    if( op.fast )
+    {
+      test.is( wasIt === it );
+    }
 
     gotDownKeys.push( k ); // k === it.key
     gotDownValues.push( e ); // e === it.src
