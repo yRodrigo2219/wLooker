@@ -1948,8 +1948,7 @@ function lookOptionFast( test )
 function lookOptionFastCycled( test )
 {
   var structure = {
-    a : [ structure, structure ],
-    b : { c : structure }
+    a : [ { d : { e : [ 1, 2 ] } }, { f : [ 'a', 'b' ] } ],
   }
 
   var gotUpKeys = [];
@@ -1973,20 +1972,20 @@ function lookOptionFastCycled( test )
   var gotUpIterable = [];
   var gotDownIterable = [];
 
-  var expectedUpKeys = [ null, 'a', 0, 1, 'b', 'c' ];
-  var expectedDownKeys = [ 0, 1, 'a', 'c', 'b', null ];
-  var expectedUpValues = [ structure, structure.a, structure.a[0], structure.a[1], structure.b, structure.b.c ];
-  var expectedDownValues = [ structure.a[0], structure.a[1], structure.a, structure.b.c, structure.b, structure ];
-  var expectedRoots = [ structure, structure, structure, structure, structure, structure ];
-  var expectedRecursive = [ Infinity, Infinity, Infinity, Infinity, Infinity, Infinity ];
-  var expectedRevisited = [ false, false, false, false, false, false ];
-  var expectedVisitingCounting = [ true, true, true, true, true, true ];
-  var expectedVisiting = [ true, true, true, true, true, true ];
-  var expectedUpAscending = [ true, true, true, true, true, true ];
-  var expectedDownAscending = [ false, false, false, false, false, false ];
-  var expectedContinue = [ true, true, true, true, true, true ];
-  var expectedUpIterable = [ 'map-like', 'long-like', false, false, 'map-like', false ];
-  var expectedDownIterable = [ false, false, 'long-like', false, 'map-like', 'map-like' ];
+  var expectedUpKeys = [ null, 'a', 0, 'd', 'e', 0, 1, 1, 'f', 0, 1 ];
+  var expectedDownKeys = [ 0, 1, 'e', 'd', 0, 0, 1, 'f', 1, 'a', null ];
+  var expectedUpValues = [ structure, structure.a, structure.a[0], structure.a[0].d, structure.a[0].d.e, structure.a[0].d.e[0], structure.a[0].d.e[1], structure.a[1], structure.a[1].f, structure.a[1].f[0], structure.a[1].f[1] ];
+  var expectedDownValues = [ structure.a[0].d.e[0], structure.a[0].d.e[1], structure.a[0].d.e, structure.a[0].d, structure.a[0], structure.a[1].f[0], structure.a[1].f[1], structure.a[1].f, structure.a[1], structure.a, structure ];
+  var expectedRoots = [ structure, structure, structure, structure, structure, structure, structure, structure, structure, structure, structure ];
+  var expectedRecursive = [ Infinity, Infinity, Infinity, Infinity, Infinity, Infinity, Infinity, Infinity, Infinity, Infinity, Infinity ];
+  var expectedRevisited = [ false, false, false, false, false, false, false, false, false, false, false ];
+  var expectedVisitingCounting = [ true, true, true, true, true, true, true, true, true, true, true ];
+  var expectedVisiting = [ true, true, true, true, true, true, true, true, true, true, true ];
+  var expectedUpAscending = [ true, true, true, true, true, true, true, true, true, true, true ];
+  var expectedDownAscending = [ false, false, false, false, false, false, false, false, false, false, false ];
+  var expectedContinue = [ true, true, true, true, true, true, true, true, true, true, true ];
+  var expectedUpIterable = [ 'map-like', 'long-like', 'map-like', 'map-like', 'long-like', false, false, 'map-like', 'long-like', false, false ];
+  var expectedDownIterable = [ false, false, 'long-like', 'map-like', 'map-like', false, false, 'long-like', 'map-like', 'long-like', 'map-like' ];
 
   test.case = 'cycled fast enabled';
   var it = _.look({ src : structure, onUp : handleUp, onDown: handleDown, fast : 1 });
