@@ -1648,7 +1648,7 @@ function lookOptionRoot( test )
 
   var gotUpRoots = [];
   var gotDownRoots = [];
-  
+
   test.case = 'explicit';
   var it = _.look({ src : structure1, onUp : handleUp1, onDown: handleDown1, root : structure1 });
   var expectedRoots = [ structure1, structure1, structure1, structure1, structure1, structure1, structure1, structure1, structure1, structure1, structure1, structure1, structure1 ];
@@ -1751,6 +1751,7 @@ function lookPerformance( test )
   // Being green :)
   test.identical( it1.src, it2.src );
 }
+
 lookPerformance.experimental = true;
 lookPerformance.timeOut = 1e6;
 
@@ -1791,9 +1792,12 @@ function lookOptionFast( test )
 
   function run( o )
   {
+
     test.case = 'fast ' + o.fast;
     clean();
+
     var it = _.look({ src : structure, onUp : handleUp, onDown: handleDown, fast : o.fast });
+
     test.description = 'keys on up';
     var expectedUpKeys = [ null, 'a', 'b', 'c', 0, 1 ];
     test.identical( gotUpKeys, expectedUpKeys );
@@ -1854,6 +1858,7 @@ function lookOptionFast( test )
     test.description = 'iterable on down';
     var expectedDownIterable = [ false, false, false, false, 'long-like', 'map-like' ];
     test.identical( gotDownIterable, expectedDownIterable );
+
     test.description = 'it src';
     test.identical( it.src, structure );
     test.description = 'it key';
@@ -1872,6 +1877,7 @@ function lookOptionFast( test )
     test.identical( it.visitCounting, true );
     test.description = 'it root';
     test.identical( it.root, structure );
+
   }
 
   function clean()
@@ -1932,7 +1938,7 @@ function lookOptionFast( test )
 
 function lookOptionFastCycled( test )
 {
-  var structure = 
+  var structure =
   {
     a : [ { d : { e : [ 1, 2 ] } }, { f : [ 'a', 'b' ] } ],
   }
@@ -1963,9 +1969,12 @@ function lookOptionFastCycled( test )
 
   function run( o )
   {
+
     test.case = 'cycled fast ' + o.fast;
     clean();
+
     var it = _.look({ src : structure, onUp : handleUp, onDown: handleDown, fast : o.fast });
+
     test.description = 'keys on up';
     var expectedUpKeys = [ null, 'a', 0, 'd', 'e', 0, 1, 1, 'f', 0, 1 ];
     test.identical( gotUpKeys, expectedUpKeys );
@@ -2025,6 +2034,7 @@ function lookOptionFastCycled( test )
     test.identical( gotUpIterable, expectedUpIterable );
     test.description = 'iterable on down';
     var expectedDownIterable = [ false, false, 'long-like', 'map-like', 'map-like', false, false, 'long-like', 'map-like', 'long-like', 'map-like' ];
+
     test.identical( gotDownIterable, expectedDownIterable );
     test.description = 'it src';
     test.identical( it.src, structure );
@@ -2044,8 +2054,9 @@ function lookOptionFastCycled( test )
     test.identical( it.visitCounting, true );
     test.description = 'it root';
     test.identical( it.root, structure );
+
   }
- 
+
   function clean()
   {
     gotUpKeys.splice( 0, gotUpKeys.length );
