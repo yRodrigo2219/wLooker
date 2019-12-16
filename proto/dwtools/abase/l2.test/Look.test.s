@@ -1764,7 +1764,7 @@ function lookOptionFast( test )
   {
     a : 1,
     b : 's',
-    //c : [ 1, 3 ], /* qqq : comment this line out */
+    c : [ 1, 3 ], /* qqq : comment this line out */
     // arr : [ 1, 3 ], /* qqq : uncomment those lines */
     // map : { m1 : 1, m3 : 3 },
     // set : new Set([ 1, 3 ]),
