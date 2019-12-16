@@ -1759,35 +1759,41 @@ lookPerformance.timeOut = 1e6;
 
 function lookOptionFast( test )
 {
-  var structure =
+
+  let structure =
   {
     a : 1,
     b : 's',
-    c : [ 1, 3 ],
+    c : [ 1, 3 ], /* qqq : comment this line out */
+    // arr : [ 1, 3 ], /* qqq : uncomment those lines */
+    // map : { m1 : 1, m3 : 3 },
+    // set : new Set([ 1, 3 ]),
+    // hash : new HashMap([ [ 'm1', 1 ], [ 'm3', 3 ] ]),
   }
 
-  var gotUpKeys = [];
-  var gotDownKeys = [];
-  var gotUpValues = [];
-  var gotDownValues = [];
-  var gotUpRoots = [];
-  var gotDownRoots = [];
-  var gotUpRecursive = [];
-  var gotDownRecursive = [];
-  var gotUpRevisited = [];
-  var gotDownRevisited = [];
-  var gotUpVisitingCounting = [];
-  var gotDownVisitingCounting = [];
-  var gotUpVisiting = [];
-  var gotDownVisiting = [];
-  var gotUpAscending = [];
-  var gotDownAscending = [];
-  var gotUpContinue = [];
-  var gotDownContinue = [];
-  var gotUpIterable = [];
-  var gotDownIterable = [];
+  let gotUpKeys = [];
+  let gotDownKeys = [];
+  let gotUpValues = [];
+  let gotDownValues = [];
+  let gotUpRoots = [];
+  let gotDownRoots = [];
+  let gotUpRecursive = [];
+  let gotDownRecursive = [];
+  let gotUpRevisited = [];
+  let gotDownRevisited = [];
+  let gotUpVisitingCounting = [];
+  let gotDownVisitingCounting = [];
+  let gotUpVisiting = [];
+  let gotDownVisiting = [];
+  let gotUpAscending = [];
+  let gotDownAscending = [];
+  let gotUpContinue = [];
+  let gotDownContinue = [];
+  let gotUpIterable = [];
+  let gotDownIterable = [];
+  let wasIt = undefined;
 
-  run({ fast : 0 });
+  // run({ fast : 0 });
   run({ fast : 1 });
 
   function run( o )
@@ -1906,6 +1912,11 @@ function lookOptionFast( test )
 
   function handleUp( e, k, it )
   {
+
+    debugger;
+    test.is( wasIt === undefined || wasIt === it );
+    wasIt = it;
+
     gotUpKeys.push( k ); // k === it.key
     gotUpValues.push( e ); // e === it.src
     gotUpRoots.push( it.root );
@@ -1916,10 +1927,15 @@ function lookOptionFast( test )
     gotUpAscending.push( it.ascending );
     gotUpContinue.push( it.continue );
     gotUpIterable.push( it.iterable );
+
   }
 
   function handleDown( e, k, it )
   {
+
+    debugger;
+    test.is( wasIt === it );
+
     gotDownKeys.push( k ); // k === it.key
     gotDownValues.push( e ); // e === it.src
     gotDownRoots.push( it.root );
@@ -1938,31 +1954,32 @@ function lookOptionFast( test )
 
 function lookOptionFastCycled( test )
 {
-  var structure =
+  let structure =
   {
     a : [ { d : { e : [ 1, 2 ] } }, { f : [ 'a', 'b' ] } ],
   }
 
-  var gotUpKeys = [];
-  var gotDownKeys = [];
-  var gotUpValues = [];
-  var gotDownValues = [];
-  var gotUpRoots = [];
-  var gotDownRoots = [];
-  var gotUpRecursive = [];
-  var gotDownRecursive = [];
-  var gotUpRevisited = [];
-  var gotDownRevisited = [];
-  var gotUpVisitingCounting = [];
-  var gotDownVisitingCounting = [];
-  var gotUpVisiting = [];
-  var gotDownVisiting = [];
-  var gotUpAscending = [];
-  var gotDownAscending = [];
-  var gotUpContinue = [];
-  var gotDownContinue = [];
-  var gotUpIterable = [];
-  var gotDownIterable = [];
+  let gotUpKeys = [];
+  let gotDownKeys = [];
+  let gotUpValues = [];
+  let gotDownValues = [];
+  let gotUpRoots = [];
+  let gotDownRoots = [];
+  let gotUpRecursive = [];
+  let gotDownRecursive = [];
+  let gotUpRevisited = [];
+  let gotDownRevisited = [];
+  let gotUpVisitingCounting = [];
+  let gotDownVisitingCounting = [];
+  let gotUpVisiting = [];
+  let gotDownVisiting = [];
+  let gotUpAscending = [];
+  let gotDownAscending = [];
+  let gotUpContinue = [];
+  let gotDownContinue = [];
+  let gotUpIterable = [];
+  let gotDownIterable = [];
+  let wasIt = undefined;
 
   run({ fast : 0 });
   run({ fast : 1 });
@@ -2034,8 +2051,8 @@ function lookOptionFastCycled( test )
     test.identical( gotUpIterable, expectedUpIterable );
     test.description = 'iterable on down';
     var expectedDownIterable = [ false, false, 'long-like', 'map-like', 'map-like', false, false, 'long-like', 'map-like', 'long-like', 'map-like' ];
-
     test.identical( gotDownIterable, expectedDownIterable );
+
     test.description = 'it src';
     test.identical( it.src, structure );
     test.description = 'it key';
@@ -2083,6 +2100,11 @@ function lookOptionFastCycled( test )
 
   function handleUp( e, k, it )
   {
+
+    debugger;
+    test.is( wasIt === undefined || wasIt === it );
+    wasIt = it;
+
     gotUpKeys.push( k ); // k === it.key
     gotUpValues.push( e ); // e === it.src
     gotUpRoots.push( it.root );
@@ -2097,6 +2119,9 @@ function lookOptionFastCycled( test )
 
   function handleDown( e, k, it )
   {
+
+    test.is( wasIt === it );
+
     gotDownKeys.push( k ); // k === it.key
     gotDownValues.push( e ); // e === it.src
     gotDownRoots.push( it.root );
