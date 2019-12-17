@@ -253,6 +253,13 @@ function select( e, k )
     e = undefined;
   }
 
+  /*
+    assigning key / src should goes first
+  */
+
+  it.key = k;
+  it.src = e;
+
   if( !it.fast )
   {
     it.level = it.level+1;
@@ -266,22 +273,22 @@ function select( e, k )
     if( hasUp )
     k2 = '"' + k2 + '"';
 
-    if( _.strEnds( it.path, it.upToken ) )
-    {
-      it.path = it.path + k2;
-    }
-    else
-    {
-      it.path = it.path + it.defaultUpToken + k2;
-    }
+    // if( _.strEnds( it.path, it.upToken ) )
+    // {
+    //   // it.path = it.path + k2;
+    //   it.path = it.onPathJoin( it.path, it.defaultUpToken, k2 );
+    // }
+    // else
+    // {
+    //   it.path = it.onPathJoin( it.path, it.defaultUpToken, k2 );
+    // }
+
+    it.index = it.down.childrenCounter;
+    it.path = it.onPathJoin( it.path, it.upToken, it.defaultUpToken, k2 );
 
     it.iterator.lastPath = it.path;
     it.iterator.lastSelected = it;
-    it.index = it.down.childrenCounter;
   }
-
-  it.key = k;
-  it.src = e;
 
   return it;
 }
@@ -836,6 +843,27 @@ function onSrcChanged()
 {
 }
 
+//
+
+function onPathJoin( selectorPath, upToken, defaultUpToken, selectorName )
+{
+  let it = this;
+  let result;
+
+  _.assert( arguments.length === 4 );
+
+  if( _.strEnds( selectorPath, upToken ) )
+  {
+    result = selectorPath + selectorName;
+  }
+  else
+  {
+    result = selectorPath + defaultUpToken + selectorName;
+  }
+
+  return result;
+}
+
 // --
 // relations
 // --
@@ -872,6 +900,7 @@ Defaults.onUp = onUp;
 Defaults.onDown = onDown;
 Defaults.onTerminal = onTerminal;
 Defaults.onSrcChanged = onSrcChanged;
+Defaults.onPathJoin = onPathJoin;
 // Defaults.own = 0;
 Defaults.fast = 0;
 Defaults.recursive = Infinity;

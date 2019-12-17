@@ -33,7 +33,7 @@ function look( test )
     a : 1,
     b : 's',
     c : [ 1,3 ],
-    d : [ 1,{ date : new Date() } ],
+    d : [ 1,{ date : new Date( Date.UTC( 1990, 0, 0 ) ) } ],
     e : function(){},
     f : new BufferRaw( 13 ),
     g : new F32x([ 1,2,3 ]),
@@ -224,7 +224,7 @@ function lookRecursive( test )
 
 //
 
-function testPaths( test )
+function fieldPaths( test )
 {
 
   let upc = 0;
@@ -1324,7 +1324,7 @@ function callbacksComplex( test )
 
 //
 
-function revisiting( test )
+function optionRevisiting( test )
 {
   let ups = [];
   let dws = [];
@@ -1490,7 +1490,7 @@ function revisiting( test )
 
 //
 
-function onSrcChangedElements( test )
+function optionOnSrcChanged( test )
 {
   let ups = [];
   let dws = [];
@@ -1563,7 +1563,7 @@ function onSrcChangedElements( test )
 
 //
 
-function onUpElements( test )
+function optionOnUpNonContainer( test )
 {
   let ups = [];
   let dws = [];
@@ -1632,7 +1632,113 @@ function onUpElements( test )
 
 //
 
-function lookOptionRoot( test )
+function optionOnPath( test )
+{
+  let ups = [];
+  let dws = [];
+  let structure =
+  {
+    int : 0,
+    str : 'str',
+    arr : [ 1, 3 ],
+    map : { m1 : new Date( Date.UTC( 1990, 0, 0 ) ), m3 : 'str' },
+    set : new Set([ 1, 3 ]),
+    hash : new HashMap([ [ new Date( Date.UTC( 1990, 0, 0 ) ), function(){} ], [ 'm3', 'str' ] ]),
+  }
+
+  /* - */
+
+  test.case = 'basic';
+  clean();
+  var it = _.look
+  ({
+    src : structure,
+    onUp : onUp,
+    onDown : onDown,
+    onPathJoin : onPathJoin,
+  });
+  var exp =
+  [
+    '/',
+    '/Number::int',
+    '/String::str',
+    '/Array::arr',
+    '/Array::arr/Number::0',
+    '/Array::arr/Number::1',
+    '/Object::map',
+    '/Object::map/Date::m1',
+    '/Object::map/String::m3',
+    '/Set::set',
+    '/Set::set/Number::1',
+    '/Set::set/Number::3',
+    '/Map::hash',
+    '/Map::hash/Function::1989-12-31T00:00:00.000Z',
+    '/Map::hash/String::m3'
+  ]
+  test.identical( ups, exp );
+  var exp =
+  [
+    '/Number::int',
+    '/String::str',
+    '/Array::arr/Number::0',
+    '/Array::arr/Number::1',
+    '/Array::arr',
+    '/Object::map/Date::m1',
+    '/Object::map/String::m3',
+    '/Object::map',
+    '/Set::set/Number::1',
+    '/Set::set/Number::3',
+    '/Set::set',
+    '/Map::hash/Function::1989-12-31T00:00:00.000Z',
+    '/Map::hash/String::m3',
+    '/Map::hash',
+    '/'
+  ]
+  test.identical( dws, exp );
+
+  /* - */
+
+  function clean()
+  {
+    ups.splice( 0, ups.length );
+    dws.splice( 0, dws.length );
+  }
+
+  function onUp( e, k, it )
+  {
+    ups.push( it.path );
+  }
+
+  function onDown( e, k, it )
+  {
+    dws.push( it.path );
+  }
+
+  function onPathJoin( selectorPath, upToken, defaultUpToken, selectorName )
+  {
+    let it = this;
+    let result;
+
+    _.assert( arguments.length === 4 );
+
+    if( _.strEnds( selectorPath, upToken ) )
+    {
+      result = selectorPath + _.strType( it.src ) + '::' + selectorName;
+    }
+    else
+    {
+      result = selectorPath + defaultUpToken + _.strType( it.src ) + '::' + selectorName;
+    }
+
+    debugger;
+    return result;
+  }
+
+}
+
+//
+
+function optionRoot( test )
 {
 
   var structure1 =
@@ -1640,12 +1746,11 @@ function lookOptionRoot( test )
     a : 1,
     b : 's',
     c : [ 1,3 ],
-    d : [ 1,{ date : new Date() } ],
+    d : [ 1, { date : new Date( Date.UTC( 1990, 0, 0 ) ) } ],
     e : function(){},
     f : new BufferRaw( 13 ),
     g : new F32x([ 1,2,3 ]),
   }
-
   var gotUpRoots = [];
   var gotDownRoots = [];
 
@@ -1732,7 +1837,7 @@ function lookOptionRoot( test )
 
 */
 
-function lookPerformance( test )
+function optionFastPerformance( test )
 {
   var structure = _.diagnosticStructureGenerate({ depth : 5, mapComplexity : 3, mapLength : 5 });
   structure = structure.structure;
@@ -1752,23 +1857,26 @@ function lookPerformance( test )
   test.identical( it1.src, it2.src );
 }
 
-lookPerformance.experimental = true;
-lookPerformance.timeOut = 1e6;
+optionFastPerformance.experimental = true;
+optionFastPerformance.timeOut = 1e6;
 
 //
 
-function lookOptionFast( test )
+function optionFast( test )
 {
 
   let structure =
   {
     a : 1,
     b : 's',
-    c : [ 1, 3 ], /* qqq : comment this line out */
-    // arr : [ 1, 3 ], /* qqq : uncomment those lines */
-    // map : { m1 : 1, m3 : 3 },
+    c : [ 1, 3 ],
+    /* qqq : comment out lines above and uncomment lines below */
+    // int : 0,
+    // str : 'str',
+    // arr : [ 1, 3 ],
+    // map : { m1 : new Date( Date.UTC( 1990, 0, 0 ) ), m3 : 'str' },
     // set : new Set([ 1, 3 ]),
-    // hash : new HashMap([ [ 'm1', 1 ], [ 'm3', 3 ] ]),
+    // hash : new HashMap([ [ new Date( Date.UTC( 1990, 0, 0 ) ), function(){} ], [ 'm3', 'str' ] ]),
   }
 
   let gotUpKeys = [];
@@ -1984,7 +2092,7 @@ function lookOptionFast( test )
 
 //
 
-function lookOptionFastCycled( test )
+function optionFastCycled( test )
 {
   let structure =
   {
@@ -2220,16 +2328,18 @@ var Self =
 
     look,
     lookRecursive,
-    testPaths,
+    fieldPaths,
     callbacksComplex,
 
-    revisiting,
-    onSrcChangedElements,
-    onUpElements,
-    lookOptionRoot,
-    lookPerformance,
-    lookOptionFast,
-    lookOptionFastCycled,
+    optionRevisiting,
+    optionOnSrcChanged,
+    optionOnUpNonContainer,
+    optionOnPath,
+
+    optionRoot,
+    optionFastPerformance,
+    optionFast,
+    optionFastCycled,
 
   }
 
